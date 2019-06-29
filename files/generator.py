@@ -1,40 +1,59 @@
+"""Matrix Generator package
+
+Not yet complete, but workable.
+
+-Generates Matrix
+-Verifies/Returns some properties
+
+TODO: Make Matrix a Class
+"""
+
 from random import randint
 from math import trunc
 
 ### GENERATORS
-# Generates random positions for mines
-def generateMines(largura,altura,nMines):
+def generateMines(width,height,nMines):
+  """Generates random positions for mines"""
+
   posMines = set()
   while len(posMines)<nMines:
-    posMines.add(randint(0,largura*altura-1))
-  # print(posMines, len(posMines)) # debug
+    posMines.add(randint(0,width*height-1))
   return posMines
 
-# Generate Matrix with mines and numbers in place
-#   -1 => mines
-#   anything else is the number of adjacent mines
-def generateMinesMatrix(largura,altura,posMines):
-  matrix = [j for j in range(altura)]
+def generateNumberMatrix(width,height,posMines):
+  """Generates Matrix with numbers
+
+  Each square in the matrix is a number
+    -> -1 = Mines
+    -> any other number - number of adjacent mines
+  """
+
+  matrix = [j for j in range(height)]
   for j in matrix:
-    matrix[j] = [i for i in range(largura)]
+    matrix[j] = [i for i in range(width)]
     for i in matrix[j]:
-      if i+j*largura in posMines:
+      if i+j*width in posMines:
         matrix[j][i] = -1
-      elif isBorder(largura,altura,i,j):
-        matrix[j][i] = calculateNumberBorder(largura,altura,i,j,posMines)
+      elif isBorder(width,height,i,j):
+        matrix[j][i] = calculateNumberBorder(width,height,i,j,posMines)
       else:
-        matrix[j][i] = calculateNumberCenter(largura,altura,i,j,posMines)
+        matrix[j][i] = calculateNumberCenter(width,height,i,j,posMines)
   # for j in range(len(matrix)): # debug matrix print
   #   print(matrix[j]) # debug matrix print
   return matrix
 
-# Generate Final Matrix with mines and numbers hidden
-#   creates a tuple with value and status (hidden/visible)
-#   for each cell of the minesMatrix
-def generateMinesMatrixFinal(largura,altura,matrix):
-  finalMatrix = [j for j in range(altura)]
+def generateTupleMatrix(width,height,matrix):
+  """Generates Matrix with square status and numbers
+
+  Each square in the matrix is a tuple
+  Tuple = (Status, Number)
+    -> status - (hidden/visible)
+    -> number - square number (or -1 for mines)
+  """
+
+  finalMatrix = [j for j in range(height)]
   for j in finalMatrix:
-    finalMatrix[j] = [i for i in range(largura)]
+    finalMatrix[j] = [i for i in range(width)]
     for i in finalMatrix[j]:
       if matrix[j][i]==-1:
         finalMatrix[j][i] = (0,-1)
@@ -44,66 +63,85 @@ def generateMinesMatrixFinal(largura,altura,matrix):
   #   print(finalMatrix[j]) # debug finalMatrix print
   return finalMatrix
 
-# Generate new Minefield (with given params)
-def newMinefield(largura,altura,nMines):
-  posMines = generateMines(largura,altura,nMines)
-  matrix = generateMinesMatrix(largura,altura,posMines)
-  matrixTup = generateMinesMatrixFinal(largura,altura,matrix)
-  return (matrixTup,posMines)
+def newMinefield(width,height,nMines):
+  """Generate new Minefield (with given params)
+
+  Uses the given Width, Height and Number of Mines
+  to generate a new Minefield
+  """
+
+  posMines = generateMines(width,height,nMines)
+  matrix = generateNumberMatrix(width,height,posMines)
+  matrixTuples = generateTupleMatrix(width,height,matrix)
+  return (matrixTuples,posMines)
 
 
-### BORDERS
-# returns if square is at the Border (Side OR Corner)
-def isBorder(largura,altura,x,y):
-  if isCorner(largura,altura,x,y):
-    return isCorner(largura,altura,x,y)
-  elif isSide(largura,altura,x,y):
-    return isSide(largura,altura,x,y)
+### BORDERs check
+def isBorder(width,height,x,y):
+  """True if square is at the Border
+
+  Border is a square at the Side OR Corner
+  """
+
+  if isCorner(width,height,x,y):
+    return isCorner(width,height,x,y)
+  elif isSide(width,height,x,y):
+    return isSide(width,height,x,y)
   else:
     return False
 
-# returns if square is at a Corner
-def isCorner(largura,altura,x,y):
-  pos = x+y*largura
+def isCorner(width,height,x,y):
+  """True if square is at a Corner"""
+
+  pos = x+y*width
   if (pos==0):
     return 'UL'
-  elif (pos==largura-1):
+  elif (pos==width-1):
     return 'UR'
-  elif (pos==largura*(altura-1)):
+  elif (pos==width*(height-1)):
     return 'DL'
-  elif (pos==altura*largura-1):
+  elif (pos==height*width-1):
     return 'DR'
   return False
 
-# returns if square is at a Side
-def isSide(largura,altura,x,y):
-  if isCorner(largura,altura,x,y):
+def isSide(width,height,x,y):
+  """True if square is at the Side of the matrix
+
+  Side DOES NOT include corners.
+  """
+
+  if isCorner(width,height,x,y):
     return False
   elif (x==0):
     return 'L'
-  elif (x==largura-1):
+  elif (x==width-1):
     return 'R'
   elif (y==0):
     return 'U'
-  elif (y==altura-1):
+  elif (y==height-1):
     return 'D'
   return False
 
 
 ### CALCULATE NUMBERS
-# Calculate Numbers for center squares (number of adjacent mines)
-def calculateNumberCenter(largura,altura,x,y,posMines):
-  pos = x+y*largura
+def calculateNumberCenter(width,height,x,y,posMines):
+  """Calculate Numbers for center squares
+
+  Numbers are the number of adjacent mines to the square
+  Calculates numbers for squares not at the Border (Center)
+  """
+
+  pos = x+y*width
   nMinesAdjacent = 0
   # aux vars - squares around
-  UL = pos-largura-1
-  U = pos-largura
-  UR = pos-largura+1
+  UL = pos-width-1
+  U = pos-width
+  UR = pos-width+1
   L = pos-1
   R = pos+1
-  DL = pos+largura-1
-  D = pos+largura
-  DR = pos+largura+1
+  DL = pos+width-1
+  D = pos+width
+  DR = pos+width+1
 
   centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
   # print(centerAdjacentSquares) # debug
@@ -112,8 +150,13 @@ def calculateNumberCenter(largura,altura,x,y,posMines):
       nMinesAdjacent += 1
   return nMinesAdjacent
 
-# Calculate Numbers for border squares (number of adjacent mines)
-def calculateNumberBorder(largura,altura,x,y,posMines):
+def calculateNumberBorder(width,height,x,y,posMines):
+  """Calculate Numbers for border squares
+
+  Numbers are the number of adjacent mines to the square
+  Calculates numbers for squares at the Border
+  """
+
   nMinesAdjacent = 0
   # aux vars - squares around
   UL = (x-1,y-1)
@@ -128,11 +171,10 @@ def calculateNumberBorder(largura,altura,x,y,posMines):
   centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
   # print(centerAdjacentSquares)
   for (i,j) in centerAdjacentSquares:
-    if (i>=0 and i<largura) and (j>=0 and j<altura):
-      if i+j*largura in posMines:
+    if (i>=0 and i<width) and (j>=0 and j<height):
+      if i+j*width in posMines:
         nMinesAdjacent += 1
   return nMinesAdjacent
-
 
 
 ### Aux Functions for Matrix

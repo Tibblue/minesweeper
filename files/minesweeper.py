@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
+"""Minesweeper Game package
+
+Can run the game in the browser using Flask.
+Use --help to show the possible flags and their use
+
+TODO: Make TerminalGUI
+FIXME: Separate Web and Terminal stuff
+"""
 
 from generator import *
-import argparse, sys
+import argparse
 import webbrowser
-from random import randint
 from math import trunc
 from flask import *
 
@@ -48,6 +55,8 @@ buttons = '''
 '''
 
 def setRoutes(app):
+  """Generates app Routes"""
+
   @app.route('/')
   def play():
     global matrixTup, posMines
@@ -140,9 +149,10 @@ def setRoutes(app):
     return redirect(url_for('play'))
 
 
-
-# Draws HTML for the minefield
+### DRAW functions
 def drawField():
+  """Makes HTML for the minefield view"""
+
   global matrixTup, posMines
   # for j in range(len(matrixTup)): # debug matrixTup print
   #   print(matrixTup[j]) # debug matrixTup print
@@ -179,8 +189,9 @@ def drawField():
   html += '</table>\n'
   return html
 
-# Draws HTML for the minefield (all visible)
 def drawFieldOpen():
+  """Makes HTML for the minefield view (all squares revealed/visible)"""
+
   global matrixTup, posMines
   # for j in range(len(matrixTup)): # debug matrixTup print
   #   print(matrixTup[j]) # debug matrixTup print
@@ -212,10 +223,13 @@ def drawFieldOpen():
   return html
 
 ### CLICKs
-# Left Click - Reveal square
-# return False - clicked mine = lost
-#        True - clicked number = reveal and continue
 def click(x,y):
+  """(Left) Click - Reveal square
+
+  returns False if a mine was clicked = lost
+          True if a number was clicked = reveal and continue
+  """
+
   global matrixTup
   square = matrixTup[y][x]
   if square[0]==-1: # flaged square
@@ -225,8 +239,12 @@ def click(x,y):
     return False
   return True
 
-# Right Click - Flag square
 def flag(x,y):
+  """(Right) Click - Flag square
+
+  Also unflags, flaged squares.
+  """
+
   global matrixTup
   square = matrixTup[y][x]
   if square[0]==0:
@@ -234,8 +252,14 @@ def flag(x,y):
   elif square[0]==-1:
     matrixTup[y][x] = (0,square[1])
 
-# Check Victory
 def checkVictory():
+  """Verifies victory condictions
+
+  Victory condictions:
+    -> All mines must be flaged
+    -> Remaining flags = 0 (TODO)
+  """
+
   global matrixTup, posMines
   largura = matrixWidth(matrixTup)
   altura = matrixHeight(matrixTup)
@@ -277,12 +301,22 @@ def main():
     parser.print_help()
 
 def webFlask(debug):
+  """Starts the game in the browser
+
+  Automatically opens a new tab, on your default browser, with the game.
+  Allows debug mode, in case you need it.
+  """
+
+  ## Define address and port
+  address = '127.0.0.1'
+  port = 5000
+
   ### Setting up Flask server
   app = Flask("Minesweeper")
   setRoutes(app)
 
   ### Open browser
-  url = 'http://127.0.0.1:5000/'
+  url = 'http://'+address+':'+str(port)+'/'
   webbrowser.open(url, new=2, autoraise=True)
 
   ### Starting server
@@ -292,11 +326,14 @@ def webFlask(debug):
     app.config['TESTING'] = True
   # print(app.config) # debug: server config
 
-  url = '127.0.0.1'
-  port = 5000
-  app.run(url,port) # runs Flask server
+  app.run(address,port) # runs Flask server
 
 def terminalGUI():
+  """Starts the game in the terminal
+
+  TODO: all of it
+  """
+
   print("Terminal GUI is a Work in progress.")
 
 
