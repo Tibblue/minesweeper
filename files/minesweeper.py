@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-# FLASK_APP=minesweeper.py FLASK_ENV=development flask run
 
+import argparse, sys
 import webbrowser
-
 from random import randint
 from math import trunc
-import argparse, sys
 from flask import *
-app = Flask("Minesweeper")
 
 largura = 15
 altura = 5
-matrix = []
+nMines = 10
 matrixTup = []
 posMines = {}
 buttons = '''
@@ -51,75 +48,76 @@ buttons = '''
   <br>
 '''
 
-@app.route('/')
-def play():
-  if matrix == []:
-    return redirect(url_for('newMapNormal'))
-  html = f'<h1>{largura}x{altura} - {nMines} Minas</h1>'
-  html += buttons
-  html += drawField()
-  html += '<br><br><br><br><br>'
-  html += drawFieldOpen()
-  return html
+def setRoutes(app):
+  @app.route('/')
+  def play():
+    if matrixTup == []:
+      return redirect(url_for('newMapNormal'))
+    html = f'<h1>{largura}x{altura} - {nMines} Minas</h1>'
+    html += buttons
+    html += drawField()
+    html += '<br><br><br><br><br>'
+    html += drawFieldOpen()
+    return html
 
-@app.route('/victory')
-def victory():
-  newMinefield(20,10,30)
-  html = f'<h1>You Won!!!</h1>'
-  html += buttons
-  return html
+  @app.route('/victory')
+  def victory():
+    newMinefield(20,10,30)
+    html = f'<h1>You Won!!!</h1>'
+    html += buttons
+    return html
 
-@app.route('/lost')
-def lost():
-  newMinefield(20,10,30)
-  html = f'<h1>You Lost</h1>'
-  html += buttons
-  return html
+  @app.route('/lost')
+  def lost():
+    newMinefield(20,10,30)
+    html = f'<h1>You Lost</h1>'
+    html += buttons
+    return html
 
-@app.route('/leftClick')
-def leftClick():
-  x = int(request.args.get('x'))
-  y = int(request.args.get('y'))
-  if click(x,y):
+  @app.route('/leftClick')
+  def leftClick():
+    x = int(request.args.get('x'))
+    y = int(request.args.get('y'))
+    if click(x,y):
+      if checkVictory():
+        return redirect(url_for('victory'))
+      else:
+        return redirect(url_for('play'))
+    else:
+      return redirect(url_for('lost'))
+
+  @app.route('/rightClick')
+  def rightClick():
+    x = int(request.args.get('x'))
+    y = int(request.args.get('y'))
+    flag(x,y)
     if checkVictory():
       return redirect(url_for('victory'))
     else:
       return redirect(url_for('play'))
-  else:
-    return redirect(url_for('lost'))
 
-@app.route('/rightClick')
-def rightClick():
-  x = int(request.args.get('x'))
-  y = int(request.args.get('y'))
-  flag(x,y)
-  if checkVictory():
-    return redirect(url_for('victory'))
-  else:
+  @app.route('/newMapEasy')
+  def newMapEasy():
+    newMinefield(10,8,10)
     return redirect(url_for('play'))
 
-@app.route('/newMapEasy')
-def newMapEasy():
-  newMinefield(10,8,10)
-  return redirect(url_for('play'))
+  @app.route('/newMapNormal')
+  def newMapNormal():
+    newMinefield(20,10,30)
+    return redirect(url_for('play'))
 
-@app.route('/newMapNormal')
-def newMapNormal():
-  newMinefield(20,10,30)
-  return redirect(url_for('play'))
+  @app.route('/newMapHard')
+  def newMapHard():
+    newMinefield(30,20,125)
+    return redirect(url_for('play'))
 
-@app.route('/newMapHard')
-def newMapHard():
-  newMinefield(30,20,125)
-  return redirect(url_for('play'))
-
-@app.route('/custom')
-def newMapCustom():
-  largura = int(request.args.get('largura'))
-  altura = int(request.args.get('altura'))
-  nMines = int(request.args.get('nMines'))
-  newMinefield(largura,altura,nMines)
-  return redirect(url_for('play'))
+  @app.route('/custom')
+  def newMapCustom():
+    largura = int(request.args.get('largura'))
+    altura = int(request.args.get('altura'))
+    nMines = int(request.args.get('nMines'))
+    newMinefield(largura,altura,nMines)
+    return redirect(url_for('play'))
 
 
 ### GENERATORS
@@ -168,7 +166,7 @@ def generateMinesMatrixFinal(largura,altura,matrix):
 # Generate new Minefield (with given params)
 def newMinefield(larguraNew,alturaNew,nMinesNew):
   global largura, altura, nMines
-  global matrixTup, matrix, posMines
+  global matrixTup, posMines
   largura = larguraNew
   altura = alturaNew
   nMines = nMinesNew
@@ -393,16 +391,21 @@ def main():
     parser.print_help()
 
 def webFlask(debug):
+  ### Setting up Flask server
+  app = Flask("Minesweeper")
+  setRoutes(app)
+
   ### Open browser
   url = 'http://127.0.0.1:5000/'
   webbrowser.open(url, new=2, autoraise=True)
 
-  ### Setting up Flask server
+  ### Starting server
   app.config['ENV'] = 'development'
   if debug:
     app.config['DEBUG'] = True
     app.config['TESTING'] = True
   # print(app.config) # debug: server config
+
   url = '127.0.0.1'
   port = 5000
   app.run(url,port) # runs Flask server
