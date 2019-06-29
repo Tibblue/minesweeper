@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 
+from generator import *
 import argparse, sys
 import webbrowser
 from random import randint
 from math import trunc
 from flask import *
 
-largura = 15
-altura = 5
-nMines = 10
 matrixTup = []
 posMines = {}
+
 buttons = '''
   <script>
     function WhichButton(event,x,y) {
@@ -51,8 +50,12 @@ buttons = '''
 def setRoutes(app):
   @app.route('/')
   def play():
+    global matrixTup, posMines
     if matrixTup == []:
       return redirect(url_for('newMapNormal'))
+    largura = matrixWidth(matrixTup)
+    altura = matrixHeight(matrixTup)
+    nMines = len(posMines)
     html = f'<h1>{largura}x{altura} - {nMines} Minas</h1>'
     html += buttons
     html += drawField()
@@ -62,14 +65,20 @@ def setRoutes(app):
 
   @app.route('/victory')
   def victory():
-    newMinefield(20,10,30)
+    global matrixTup, posMines
+    minefield = newMinefield(20,10,30)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     html = f'<h1>You Won!!!</h1>'
     html += buttons
     return html
 
   @app.route('/lost')
   def lost():
-    newMinefield(20,10,30)
+    global matrixTup, posMines
+    minefield = newMinefield(20,10,30)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     html = f'<h1>You Lost</h1>'
     html += buttons
     return html
@@ -98,17 +107,26 @@ def setRoutes(app):
 
   @app.route('/newMapEasy')
   def newMapEasy():
-    newMinefield(10,8,10)
+    global matrixTup, posMines
+    minefield = newMinefield(10,8,10)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     return redirect(url_for('play'))
 
   @app.route('/newMapNormal')
   def newMapNormal():
-    newMinefield(20,10,30)
+    global matrixTup, posMines
+    minefield = newMinefield(20,10,30)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     return redirect(url_for('play'))
 
   @app.route('/newMapHard')
   def newMapHard():
-    newMinefield(30,20,125)
+    global matrixTup, posMines
+    minefield = newMinefield(30,20,125)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     return redirect(url_for('play'))
 
   @app.route('/custom')
@@ -116,155 +134,23 @@ def setRoutes(app):
     largura = int(request.args.get('largura'))
     altura = int(request.args.get('altura'))
     nMines = int(request.args.get('nMines'))
-    newMinefield(largura,altura,nMines)
+    minefield = newMinefield(largura,altura,nMines)
+    matrixTup = minefield[0]
+    posMines = minefield[1]
     return redirect(url_for('play'))
 
 
-### GENERATORS
-# Generates random positions for mines
-def generateMines(largura,altura,nMines):
-  posMines = set()
-  while len(posMines)<nMines:
-    posMines.add(randint(0,largura*altura-1))
-  # print(posMines, len(posMines)) # debug
-  return posMines
-
-# Generate Matrix with mines and numbers in place
-#   -1 => mines
-#   anything else is the number of adjacent mines
-def generateMinesMatrix(largura,altura,posMines):
-  matrix = [j for j in range(altura)]
-  for j in matrix:
-    matrix[j] = [i for i in range(largura)]
-    for i in matrix[j]:
-      if i+j*largura in posMines:
-        matrix[j][i] = -1
-      elif isBorder(largura,altura,i,j):
-        matrix[j][i] = calculateNumberBorder(largura,altura,i,j,posMines)
-      else:
-        matrix[j][i] = calculateNumberCenter(largura,altura,i,j,posMines)
-  # for j in range(len(matrix)): # debug matrix print
-  #   print(matrix[j]) # debug matrix print
-  return matrix
-
-# Generate Final Matrix with mines and numbers hidden
-#   creates a tuple with value and status (hidden/visible)
-#   for each cell of the minesMatrix
-def generateMinesMatrixFinal(largura,altura,matrix):
-  finalMatrix = [j for j in range(altura)]
-  for j in finalMatrix:
-    finalMatrix[j] = [i for i in range(largura)]
-    for i in finalMatrix[j]:
-      if matrix[j][i]==-1:
-        finalMatrix[j][i] = (0,-1)
-      else:
-        finalMatrix[j][i] = (0,matrix[j][i])
-  # for j in range(len(finalMatrix)): # debug finalMatrix print
-  #   print(finalMatrix[j]) # debug finalMatrix print
-  return finalMatrix
-
-# Generate new Minefield (with given params)
-def newMinefield(larguraNew,alturaNew,nMinesNew):
-  global largura, altura, nMines
-  global matrixTup, posMines
-  largura = larguraNew
-  altura = alturaNew
-  nMines = nMinesNew
-  posMines = generateMines(largura,altura,nMines)
-  matrix = generateMinesMatrix(largura,altura,posMines)
-  matrixTup = generateMinesMatrixFinal(largura,altura,matrix)
-
-### BORDERS
-# returns if square is at the Border (Side OR Corner)
-def isBorder(largura,altura,x,y):
-  if isCorner(largura,altura,x,y):
-    return isCorner(largura,altura,x,y)
-  elif isSide(largura,altura,x,y):
-    return isSide(largura,altura,x,y)
-  else:
-    return False
-
-# returns if square is at a Corner
-def isCorner(largura,altura,x,y):
-  pos = x+y*largura
-  if (pos==0):
-    return 'UL'
-  elif (pos==largura-1):
-    return 'UR'
-  elif (pos==largura*(altura-1)):
-    return 'DL'
-  elif (pos==altura*largura-1):
-    return 'DR'
-  return False
-
-# returns if square is at a Side
-def isSide(largura,altura,x,y):
-  if isCorner(largura,altura,x,y):
-    return False
-  elif (x==0):
-    return 'L'
-  elif (x==largura-1):
-    return 'R'
-  elif (y==0):
-    return 'U'
-  elif (y==altura-1):
-    return 'D'
-  return False
-
-### CALCULATE NUMBERS
-# Calculate Numbers for center squares (number of adjacent mines)
-def calculateNumberCenter(largura,altura,x,y,posMines):
-  pos = x+y*largura
-  nMinesAdjacent = 0
-  # aux vars - squares around
-  UL = pos-largura-1
-  U = pos-largura
-  UR = pos-largura+1
-  L = pos-1
-  R = pos+1
-  DL = pos+largura-1
-  D = pos+largura
-  DR = pos+largura+1
-
-  centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
-  # print(centerAdjacentSquares) # debug
-  for i in centerAdjacentSquares:
-    if i in posMines:
-      nMinesAdjacent += 1
-  return nMinesAdjacent
-
-# Calculate Numbers for border squares (number of adjacent mines)
-def calculateNumberBorder(largura,altura,x,y,posMines):
-  nMinesAdjacent = 0
-  # aux vars - squares around
-  UL = (x-1,y-1)
-  U = (x,y-1)
-  UR = (x+1,y-1)
-  L = (x-1,y)
-  R = (x+1,y)
-  DL = (x-1,y+1)
-  D = (x,y+1)
-  DR = (x+1,y+1)
-
-  centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
-  # print(centerAdjacentSquares)
-  for (i,j) in centerAdjacentSquares:
-    if (i>=0 and i<largura) and (j>=0 and j<altura):
-      if i+j*largura in posMines:
-        nMinesAdjacent += 1
-  return nMinesAdjacent
 
 # Draws HTML for the minefield
 def drawField():
-  global largura, altura
   global matrixTup, posMines
   # for j in range(len(matrixTup)): # debug matrixTup print
   #   print(matrixTup[j]) # debug matrixTup print
 
   html = '<table oncontextmenu="return false;">\n'
-  for y in range(altura):
+  for y in range(matrixHeight(matrixTup)):
     html += '<tr>'
-    for x in range(largura):
+    for x in range(matrixWidth(matrixTup)):
       html += '<td align="center" width="32" height="32"'
       if matrixTup[y][x][0]==0:
         html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="static/images/block.jpg" alt="Mine" width="32" height="32">'
@@ -295,15 +181,14 @@ def drawField():
 
 # Draws HTML for the minefield (all visible)
 def drawFieldOpen():
-  global largura, altura
   global matrixTup, posMines
   # for j in range(len(matrixTup)): # debug matrixTup print
   #   print(matrixTup[j]) # debug matrixTup print
 
   html = '<table>\n'
-  for y in range(altura):
+  for y in range(matrixHeight(matrixTup)):
     html += '<tr>'
-    for x in range(largura):
+    for x in range(matrixWidth(matrixTup)):
       html += '<td align="center" width="16" height="16"'
       if matrixTup[y][x][1]==-1:
         html += '><img src="static/images/mineRED.jpg" alt="Mine" width="16" height="16">'
@@ -351,8 +236,9 @@ def flag(x,y):
 
 # Check Victory
 def checkVictory():
-  global largura, altura
   global matrixTup, posMines
+  largura = matrixWidth(matrixTup)
+  altura = matrixHeight(matrixTup)
 
   nMinesLeft = len(posMines)
   for i in posMines:
