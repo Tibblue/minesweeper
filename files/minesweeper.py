@@ -5,7 +5,7 @@ Can run the game in the browser using Flask.
 Use --help to show the possible flags and their use
 
 TODO: Make TerminalGUI
-FIXME: Separate Web and Terminal stuff
+FIXME: Separate Web and Terminal stuff (after doing terminalGUI XD)
 """
 
 from generator import *
@@ -60,7 +60,9 @@ def setRoutes(app):
   def play():
     global matrixTup, posMines
     if matrixTup == []:
-      return redirect(url_for('newMapNormal'))
+      minefield = Minefield(20,10,30)
+      posMines = minefield.posMines
+      matrixTup = minefield.matrixTuples
     largura = matrixWidth(matrixTup)
     altura = matrixHeight(matrixTup)
     nMines = len(posMines)
@@ -74,9 +76,9 @@ def setRoutes(app):
   @app.route('/victory')
   def victory():
     global matrixTup, posMines
-    minefield = newMinefield(20,10,30)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(20,10,30)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     html = f'<h1>You Won!!!</h1>'
     html += buttons
     return html
@@ -84,9 +86,9 @@ def setRoutes(app):
   @app.route('/lost')
   def lost():
     global matrixTup, posMines
-    minefield = newMinefield(20,10,30)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(20,10,30)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     html = f'<h1>You Lost</h1>'
     html += buttons
     return html
@@ -119,35 +121,36 @@ def setRoutes(app):
   @app.route('/newMapEasy')
   def newMapEasy():
     global matrixTup, posMines
-    minefield = newMinefield(10,8,10)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(10,8,10)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/newMapNormal')
   def newMapNormal():
     global matrixTup, posMines
-    minefield = newMinefield(20,10,30)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(20,10,30)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/newMapHard')
   def newMapHard():
     global matrixTup, posMines
-    minefield = newMinefield(30,20,125)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(30,20,125)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/custom')
   def newMapCustom():
+    global matrixTup, posMines
     largura = int(request.args.get('largura'))
     altura = int(request.args.get('altura'))
     nMines = int(request.args.get('nMines'))
-    minefield = newMinefield(largura,altura,nMines)
-    matrixTup = minefield[0]
-    posMines = minefield[1]
+    minefield = Minefield(largura,altura,nMines)
+    posMines = minefield.posMines
+    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
 

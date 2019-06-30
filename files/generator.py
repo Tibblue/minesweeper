@@ -1,58 +1,15 @@
-"""Matrix Generator package
+"""Minefield Generator package
 
 Not yet complete, but workable.
 
--Generates Matrix
+-Generates Minefield
 -Verifies/Returns some properties
 
-TODO: Make Matrix a Class
+TODO: Improve Minefield Class
 """
 
 from random import randint
 from math import trunc
-
-### GENERATORS
-def _generateMines(width,height,nMines):
-  """Generates random positions for mines"""
-
-  posMines = set()
-  while len(posMines)<nMines:
-    posMines.add(randint(0,width*height-1))
-  return posMines
-
-def _generateMatrix(width,height,posMines):
-  """Generates Matrix with square status and numbers
-
-  Each square in the matrix is a tuple
-  Tuple = (Status, Number)
-    -> status - (flaged/hidden/visible)
-    -> number - square number (or -1 for mines)
-  """
-
-  matrix = [j for j in range(height)]
-  for j in matrix:
-    matrix[j] = [i for i in range(width)]
-    for i in matrix[j]:
-      if i+j*width in posMines:
-        matrix[j][i] = (0,-1)
-      elif isBorder(width,height,i,j):
-        matrix[j][i] = (0,calculateNumberBorder(width,height,i,j,posMines))
-      else:
-        matrix[j][i] = (0,calculateNumberCenter(width,height,i,j,posMines))
-  # for j in range(len(matrix)): # debug matrix print
-  #   print(matrix[j]) # debug matrix print
-  return matrix
-
-def newMinefield(width,height,nMines):
-  """Generate new Minefield (with given params)
-
-  Uses the given Width, Height and Number of Mines
-  to generate a new Minefield
-  """
-
-  posMines = _generateMines(width,height,nMines)
-  matrix = _generateMatrix(width,height,posMines)
-  return (matrix,posMines)
 
 
 ### BORDERs check
@@ -101,59 +58,6 @@ def isSide(width,height,x,y):
     return 'D'
   return False
 
-
-### CALCULATE NUMBERS
-def calculateNumberCenter(width,height,x,y,posMines):
-  """Calculate Numbers for center squares
-
-  Numbers are the number of adjacent mines to the square
-  Calculates numbers for squares not at the Border (Center)
-  """
-
-  pos = x+y*width
-  nMinesAdjacent = 0
-  # aux vars - squares around
-  UL = pos-width-1
-  U = pos-width
-  UR = pos-width+1
-  L = pos-1
-  R = pos+1
-  DL = pos+width-1
-  D = pos+width
-  DR = pos+width+1
-
-  centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
-  # print(centerAdjacentSquares) # debug
-  for i in centerAdjacentSquares:
-    if i in posMines:
-      nMinesAdjacent += 1
-  return nMinesAdjacent
-
-def calculateNumberBorder(width,height,x,y,posMines):
-  """Calculate Numbers for border squares
-
-  Numbers are the number of adjacent mines to the square
-  Calculates numbers for squares at the Border
-  """
-
-  nMinesAdjacent = 0
-  # aux vars - squares around
-  UL = (x-1,y-1)
-  U = (x,y-1)
-  UR = (x+1,y-1)
-  L = (x-1,y)
-  R = (x+1,y)
-  DL = (x-1,y+1)
-  D = (x,y+1)
-  DR = (x+1,y+1)
-
-  centerAdjacentSquares = [UL,U,UR,L,R,DL,D,DR]
-  # print(centerAdjacentSquares)
-  for (i,j) in centerAdjacentSquares:
-    if (i>=0 and i<width) and (j>=0 and j<height):
-      if i+j*width in posMines:
-        nMinesAdjacent += 1
-  return nMinesAdjacent
 
 
 ### CLICKs
@@ -224,6 +128,105 @@ def matrixWidth(matrix):
 
 def matrixHeight(matrix):
   return len(matrix)
+
+
+
+class Minefield:
+  """Minefield Matrix
+
+  This matrix represents the minesweeper Minefield.
+
+  Attributes
+  ----------
+  width : int
+    width of the matrix
+  height : int
+    height of the matrix
+  nMines : int
+    Number of Mines in the Minefield
+  posMines : Set List
+    List with the positions of the mines
+  matrixTuples : Matrix
+    Matrix where each position is a Tuple (Status,Number)
+
+  NOTES:
+    -> Coord(x,y) = Position(x+y*width)
+    Each cell/square is a Tuple (Status,Number).
+      -> status - (flaged -1/hidden 0/visible 1)
+      -> number - square number (or -1 for mines)
+
+
+  TODO: move remaining function to the class
+  """
+
+  def __init__(self,width,height,nMines):
+    self.newMinefield(width,height,nMines)
+    print("New minefield")
+
+  def newMinefield(self,width,height,nMines):
+    """Generate new Minefield (with given params)
+
+    Uses the given Width, Height and Number of Mines
+    to generate a new Minefield
+    """
+
+    self.width = width
+    self.height = height
+    self.nMines = nMines
+    self.posMines = self._generateMines(width,height,nMines)
+    self.matrixTuples = self._generateMatrix(width,height,self.posMines)
+
+
+  def _generateMines(self,width,height,nMines):
+    """Generates random positions for mines"""
+
+    posMines = set()
+    while len(posMines)<nMines:
+      posMines.add(randint(0,width*height-1))
+    return posMines
+
+  def _generateMatrix(self,width,height,posMines):
+    """Generates Minefield with square status and numbers
+
+    Each square in the matrix is a tuple
+    Tuple = (Status, Number)
+      -> status - (flaged -1/hidden 0/visible 1)
+      -> number - square number (or -1 for mines)
+    """
+
+    matrix = [j for j in range(height)]
+    for j in matrix:
+      matrix[j] = [i for i in range(width)]
+      for i in matrix[j]:
+        if i+j*width in posMines:
+          matrix[j][i] = (0,-1)
+        else:
+          matrix[j][i] = (0,self._calculateNumber(width,height,i,j,posMines))
+    return matrix
+
+  def _calculateNumber(self,width,height,x,y,posMines):
+    """Calculate Numbers a square
+
+    Numbers are the number of adjacent mines to the square
+    """
+
+    # 8 vars, one for each adjacent square
+    UL = (x-1,y-1)
+    U = (x,y-1)
+    UR = (x+1,y-1)
+    L = (x-1,y)
+    R = (x+1,y)
+    DL = (x-1,y+1)
+    D = (x,y+1)
+    DR = (x+1,y+1)
+    adjacentSquares = [UL,U,UR,L,R,DL,D,DR]
+
+    nMinesAdjacent = 0
+    for (i,j) in adjacentSquares:
+      if (i>=0 and i<width) and (j>=0 and j<height):
+        if i+j*width in posMines:
+          nMinesAdjacent += 1
+    return nMinesAdjacent
 
 
 
