@@ -13,8 +13,7 @@ import argparse
 import webbrowser
 from flask import *
 
-matrixTup = []
-posMines = {}
+minefield = None
 
 buttons = '''
   <script>
@@ -26,6 +25,8 @@ buttons = '''
         window.location.replace("/rightClick?x="+x+"&y="+y);
     }
   </script>
+
+  <title>Minesweeper</title>
 
   <button type="button">
     <a href="/newMapEasy">Generate New Map (Easy Dificulty)</a>
@@ -58,37 +59,27 @@ def setRoutes(app):
 
   @app.route('/')
   def play():
-    global matrixTup, posMines
-    if matrixTup == []:
+    global minefield
+    if minefield is None:
       minefield = Minefield(20,10,30)
-      posMines = minefield.posMines
-      matrixTup = minefield.matrixTuples
-    largura = matrixWidth(matrixTup)
-    altura = matrixHeight(matrixTup)
-    nMines = len(posMines)
-    html = f'<h1>{largura}x{altura} - {nMines} Minas</h1>'
+    html = f'<h1>{minefield.width}x{minefield.height} - {minefield.nMines} Minas</h1>'
     html += buttons
     html += drawField()
-    html += '<br><br><br><br><br>'
-    html += drawFieldOpen()
+    html += '<br><br><br><br><br>' + drawFieldOpen()
     return html
 
   @app.route('/victory')
   def victory():
-    global matrixTup, posMines
+    global minefield
     minefield = Minefield(20,10,30)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     html = f'<h1>You Won!!!</h1>'
     html += buttons
     return html
 
   @app.route('/lost')
   def lost():
-    global matrixTup, posMines
+    global minefield
     minefield = Minefield(20,10,30)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     html = f'<h1>You Lost</h1>'
     html += buttons
     return html
@@ -97,7 +88,7 @@ def setRoutes(app):
   def leftClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    result = click(x,y,matrixTup)
+    result = click(x,y,minefield.matrixTuples)
     if result==-1:
       return redirect(url_for('lost'))
     elif result==0:
@@ -112,45 +103,37 @@ def setRoutes(app):
   def rightClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    flag(x,y,matrixTup)
-    if checkVictory(matrixTup,posMines):
+    flag(x,y,minefield.matrixTuples)
+    if checkVictory(minefield.matrixTuples,minefield.posMines):
       return redirect(url_for('victory'))
     else:
       return redirect(url_for('play'))
 
   @app.route('/newMapEasy')
   def newMapEasy():
-    global matrixTup, posMines
+    global minefield
     minefield = Minefield(10,8,10)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/newMapNormal')
   def newMapNormal():
-    global matrixTup, posMines
+    global minefield
     minefield = Minefield(20,10,30)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/newMapHard')
   def newMapHard():
-    global matrixTup, posMines
+    global minefield
     minefield = Minefield(30,20,125)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
   @app.route('/custom')
   def newMapCustom():
-    global matrixTup, posMines
+    global minefield
     largura = int(request.args.get('largura'))
     altura = int(request.args.get('altura'))
     nMines = int(request.args.get('nMines'))
     minefield = Minefield(largura,altura,nMines)
-    posMines = minefield.posMines
-    matrixTup = minefield.matrixTuples
     return redirect(url_for('play'))
 
 
@@ -158,37 +141,36 @@ def setRoutes(app):
 def drawField():
   """Makes HTML for the minefield view"""
 
-  global matrixTup, posMines
-  # for j in range(len(matrixTup)): # debug matrixTup print
-  #   print(matrixTup[j]) # debug matrixTup print
+  global minefield
+  matrix = minefield.matrixTuples
 
   html = '<table oncontextmenu="return false;">\n'
-  for y in range(matrixHeight(matrixTup)):
+  for y in range(minefield.height):
     html += '<tr>'
-    for x in range(matrixWidth(matrixTup)):
+    for x in range(minefield.width):
       html += '<td align="center" width="32" height="32"'
-      if matrixTup[y][x][0]==0:
-        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="static/images/block.jpg" alt="Mine" width="32" height="32">'
-      elif matrixTup[y][x][0]==-1:
-        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="static/images/flag.jpg" alt="Mine" width="32" height="32">'
+      if matrix[y][x][0]==0:
+        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/block.jpg" alt="Mine" width="32" height="32">'
+      elif matrix[y][x][0]==-1:
+        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/flag.jpg" alt="Mine" width="32" height="32">'
       else:
-        if matrixTup[y][x][1]==-1:
-          html += f'><img src="static/images/mineRED.jpg" alt="Mine" width="32" height="32">'
-          # html += f'><a href="/leftClick?x={x}&y={y}"><img src="static/images/mineRED.jpg" alt="Mine" width="32" height="32"></a>'
+        if matrix[y][x][1]==-1:
+          html += f'><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32">'
+          # html += f'><a href="/leftClick?x={x}&y={y}"><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32"></a>'
         else:
-          if matrixTup[y][x][1]>4:
+          if matrix[y][x][1]>4:
             html += f' style="background-color:rgb(255, 64, 64)">'
-          elif matrixTup[y][x][1]==4:
+          elif matrix[y][x][1]==4:
             html += f' style="background-color:rgb(255, 128, 32)">'
-          elif matrixTup[y][x][1]==3:
+          elif matrix[y][x][1]==3:
             html += f' style="background-color:rgb(224, 224, 32)">'
-          elif matrixTup[y][x][1]==2:
+          elif matrix[y][x][1]==2:
             html += f' style="background-color:rgb(64, 192, 64)">'
-          elif matrixTup[y][x][1]==1:
+          elif matrix[y][x][1]==1:
             html += f' style="background-color:rgb(64, 192, 255)">'
           else:
             html += f' style="background-color:rgb(192, 192, 192)">'
-          html += '<p style="font-size:28px">'+str(matrixTup[y][x][1])+'</p>'
+          html += '<span style="font-size:28px">'+str(matrix[y][x][1])+'</span>'
       html += '</td>'
     html += '</tr>'
   html += '</table>\n'
@@ -197,34 +179,33 @@ def drawField():
 def drawFieldOpen():
   """Makes HTML for the minefield view (all squares revealed/visible)"""
 
-  global matrixTup, posMines
-  # for j in range(len(matrixTup)): # debug matrixTup print
-  #   print(matrixTup[j]) # debug matrixTup print
+  global minefield
+  matrix = minefield.matrixTuples
 
   html = '<table>\n'
-  for y in range(matrixHeight(matrixTup)):
+  for y in range(minefield.height):
     html += '<tr>'
-    for x in range(matrixWidth(matrixTup)):
+    for x in range(minefield.width):
       html += '<td align="center" width="16" height="16"'
-      if matrixTup[y][x][1]==-1:
-        html += '><img src="static/images/mineRED.jpg" alt="Mine" width="16" height="16">'
+      if matrix[y][x][1]==-1:
+        html += '><img src="/static/images/mineRED.jpg" alt="Mine" width="16" height="16">'
       else:
-        if matrixTup[y][x][1]>4:
-          html += ' style="background-color:rgb(255, 64, 64);">'+str(matrixTup[y][x][1])
-        elif matrixTup[y][x][1]==4:
-          html += ' style="background-color:rgb(255, 128, 32);">'+str(matrixTup[y][x][1])
-        elif matrixTup[y][x][1]==3:
-          html += ' style="background-color:rgb(224, 224, 32);">'+str(matrixTup[y][x][1])
-        elif matrixTup[y][x][1]==2:
-          html += ' style="background-color:rgb(64, 192, 64);">'+str(matrixTup[y][x][1])
-        elif matrixTup[y][x][1]==1:
-          html += ' style="background-color:rgb(64, 192, 255);">'+str(matrixTup[y][x][1])
+        if matrix[y][x][1]>4:
+          html += ' style="background-color:rgb(255, 64, 64);">'+str(matrix[y][x][1])
+        elif matrix[y][x][1]==4:
+          html += ' style="background-color:rgb(255, 128, 32);">'+str(matrix[y][x][1])
+        elif matrix[y][x][1]==3:
+          html += ' style="background-color:rgb(224, 224, 32);">'+str(matrix[y][x][1])
+        elif matrix[y][x][1]==2:
+          html += ' style="background-color:rgb(64, 192, 64);">'+str(matrix[y][x][1])
+        elif matrix[y][x][1]==1:
+          html += ' style="background-color:rgb(64, 192, 255);">'+str(matrix[y][x][1])
         else:
-          html += ' style="background-color:rgb(192, 192, 192);">'+str(matrixTup[y][x][1])
+          html += ' style="background-color:rgb(192, 192, 192);">'+str(matrix[y][x][1])
       html += '</td>'
     html += '</tr>'
   html += '</table>\n'
-  html += '<p>Mines Position: '+str(posMines)+'</p>' # debug
+  html += '<span>Mines Position: '+str(minefield.posMines)+'</span>' # debug
   return html
 
 
