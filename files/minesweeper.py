@@ -11,7 +11,6 @@ FIXME: Separate Web and Terminal stuff
 from generator import *
 import argparse
 import webbrowser
-from math import trunc
 from flask import *
 
 matrixTup = []

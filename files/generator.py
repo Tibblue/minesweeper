@@ -20,29 +20,7 @@ def _generateMines(width,height,nMines):
     posMines.add(randint(0,width*height-1))
   return posMines
 
-def _generateNumberMatrix(width,height,posMines):
-  """Generates Matrix with numbers
-
-  Each square in the matrix is a number
-    -> -1 = Mines
-    -> any other number - number of adjacent mines
-  """
-
-  matrix = [j for j in range(height)]
-  for j in matrix:
-    matrix[j] = [i for i in range(width)]
-    for i in matrix[j]:
-      if i+j*width in posMines:
-        matrix[j][i] = -1
-      elif isBorder(width,height,i,j):
-        matrix[j][i] = calculateNumberBorder(width,height,i,j,posMines)
-      else:
-        matrix[j][i] = calculateNumberCenter(width,height,i,j,posMines)
-  # for j in range(len(matrix)): # debug matrix print
-  #   print(matrix[j]) # debug matrix print
-  return matrix
-
-def _generateTupleMatrix(width,height,numberMatrix):
+def _generateMatrix(width,height,posMines):
   """Generates Matrix with square status and numbers
 
   Each square in the matrix is a tuple
@@ -51,17 +29,19 @@ def _generateTupleMatrix(width,height,numberMatrix):
     -> number - square number (or -1 for mines)
   """
 
-  finalMatrix = [j for j in range(height)]
-  for j in finalMatrix:
-    finalMatrix[j] = [i for i in range(width)]
-    for i in finalMatrix[j]:
-      if numberMatrix[j][i]==-1:
-        finalMatrix[j][i] = (0,-1)
+  matrix = [j for j in range(height)]
+  for j in matrix:
+    matrix[j] = [i for i in range(width)]
+    for i in matrix[j]:
+      if i+j*width in posMines:
+        matrix[j][i] = (0,-1)
+      elif isBorder(width,height,i,j):
+        matrix[j][i] = (0,calculateNumberBorder(width,height,i,j,posMines))
       else:
-        finalMatrix[j][i] = (0,numberMatrix[j][i])
-  # for j in range(len(finalMatrix)): # debug finalMatrix print
-  #   print(finalMatrix[j]) # debug finalMatrix print
-  return finalMatrix
+        matrix[j][i] = (0,calculateNumberCenter(width,height,i,j,posMines))
+  # for j in range(len(matrix)): # debug matrix print
+  #   print(matrix[j]) # debug matrix print
+  return matrix
 
 def newMinefield(width,height,nMines):
   """Generate new Minefield (with given params)
@@ -71,9 +51,8 @@ def newMinefield(width,height,nMines):
   """
 
   posMines = _generateMines(width,height,nMines)
-  matrix = _generateNumberMatrix(width,height,posMines)
-  matrixTuples = _generateTupleMatrix(width,height,matrix)
-  return (matrixTuples,posMines)
+  matrix = _generateMatrix(width,height,posMines)
+  return (matrix,posMines)
 
 
 ### BORDERs check
