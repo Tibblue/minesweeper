@@ -96,20 +96,23 @@ def setRoutes(app):
   def leftClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    if click(x,y):
-      if checkVictory():
-        return redirect(url_for('victory'))
-      else:
-        return redirect(url_for('play'))
-    else:
+    result = click(x,y,matrixTup)
+    if result==-1:
       return redirect(url_for('lost'))
+    elif result==0:
+      # TODO: expand surroundings
+      return redirect(url_for('play'))
+    elif result==1:
+      return redirect(url_for('play'))
+    elif result==2:
+      return redirect(url_for('victory'))
 
   @app.route('/rightClick')
   def rightClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    flag(x,y)
-    if checkVictory():
+    flag(x,y,matrixTup)
+    if checkVictory(matrixTup,posMines):
       return redirect(url_for('victory'))
     else:
       return redirect(url_for('play'))
@@ -221,63 +224,6 @@ def drawFieldOpen():
   html += '</table>\n'
   html += '<p>Mines Position: '+str(posMines)+'</p>' # debug
   return html
-
-### CLICKs
-def click(x,y):
-  """(Left) Click - Reveal square
-
-  returns False if a mine was clicked = lost
-          True if a number was clicked = reveal and continue
-  """
-
-  global matrixTup
-  square = matrixTup[y][x]
-  if square[0]==-1: # flaged square
-    return True
-  matrixTup[y][x] = (1,square[1])
-  if square[1]==-1: # mine square
-    return False
-  return True
-
-def flag(x,y):
-  """(Right) Click - Flag square
-
-  Also unflags, flaged squares.
-  """
-
-  global matrixTup
-  square = matrixTup[y][x]
-  if square[0]==0:
-    matrixTup[y][x] = (-1,square[1])
-  elif square[0]==-1:
-    matrixTup[y][x] = (0,square[1])
-
-def checkVictory():
-  """Verifies victory condictions
-
-  Victory condictions:
-    -> All mines must be flaged
-    -> Remaining flags = 0 (TODO)
-  """
-
-  global matrixTup, posMines
-  largura = matrixWidth(matrixTup)
-  altura = matrixHeight(matrixTup)
-
-  nMinesLeft = len(posMines)
-  for i in posMines:
-    x = i % largura
-    y = trunc(i / largura)
-    # print(x,y) # debug
-    square = matrixTup[y][x]
-    # print(square) # debug
-    if square[0]==-1:
-      nMinesLeft -= 1
-
-  # print(nMinesLeft)
-  if nMinesLeft==0:
-    return True
-  return False
 
 
 

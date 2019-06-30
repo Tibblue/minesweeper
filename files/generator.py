@@ -12,7 +12,7 @@ from random import randint
 from math import trunc
 
 ### GENERATORS
-def generateMines(width,height,nMines):
+def _generateMines(width,height,nMines):
   """Generates random positions for mines"""
 
   posMines = set()
@@ -20,7 +20,7 @@ def generateMines(width,height,nMines):
     posMines.add(randint(0,width*height-1))
   return posMines
 
-def generateNumberMatrix(width,height,posMines):
+def _generateNumberMatrix(width,height,posMines):
   """Generates Matrix with numbers
 
   Each square in the matrix is a number
@@ -42,12 +42,12 @@ def generateNumberMatrix(width,height,posMines):
   #   print(matrix[j]) # debug matrix print
   return matrix
 
-def generateTupleMatrix(width,height,matrix):
+def _generateTupleMatrix(width,height,numberMatrix):
   """Generates Matrix with square status and numbers
 
   Each square in the matrix is a tuple
   Tuple = (Status, Number)
-    -> status - (hidden/visible)
+    -> status - (flaged/hidden/visible)
     -> number - square number (or -1 for mines)
   """
 
@@ -55,10 +55,10 @@ def generateTupleMatrix(width,height,matrix):
   for j in finalMatrix:
     finalMatrix[j] = [i for i in range(width)]
     for i in finalMatrix[j]:
-      if matrix[j][i]==-1:
+      if numberMatrix[j][i]==-1:
         finalMatrix[j][i] = (0,-1)
       else:
-        finalMatrix[j][i] = (0,matrix[j][i])
+        finalMatrix[j][i] = (0,numberMatrix[j][i])
   # for j in range(len(finalMatrix)): # debug finalMatrix print
   #   print(finalMatrix[j]) # debug finalMatrix print
   return finalMatrix
@@ -70,9 +70,9 @@ def newMinefield(width,height,nMines):
   to generate a new Minefield
   """
 
-  posMines = generateMines(width,height,nMines)
-  matrix = generateNumberMatrix(width,height,posMines)
-  matrixTuples = generateTupleMatrix(width,height,matrix)
+  posMines = _generateMines(width,height,nMines)
+  matrix = _generateNumberMatrix(width,height,posMines)
+  matrixTuples = _generateTupleMatrix(width,height,matrix)
   return (matrixTuples,posMines)
 
 
@@ -175,6 +175,68 @@ def calculateNumberBorder(width,height,x,y,posMines):
       if i+j*width in posMines:
         nMinesAdjacent += 1
   return nMinesAdjacent
+
+
+### CLICKs
+def click(x,y,matrix):
+  """(Left) Click - Reveal square
+
+  returns -1 if a mine was clicked = lost
+           0 if a empty square was clicked = expand surroundings (TODO)
+           1 if a number square was clicked = show square
+           2 if a flag was clicked = do nothing
+  """
+
+  square = matrix[y][x]
+  if square[0]==-1: # flaged square
+    return 2
+  matrix[y][x] = (1,square[1]) # reveals square
+  if square[1]==-1: # mine square
+    return -1
+  if square[1]==0: # empty square
+    return 0
+  if square[1]>=1: # number square
+    return 1
+
+def flag(x,y,matrix):
+  """(Right) Click - Flag square
+
+  Also unflags, flaged squares.
+  """
+
+  square = matrix[y][x]
+  if square[0]==0:
+    matrix[y][x] = (-1,square[1])
+  elif square[0]==-1:
+    matrix[y][x] = (0,square[1])
+
+def checkVictory(matrix,posMines):
+  """Verifies victory condictions
+
+  Victory condictions:
+    -> All mines must be flaged
+    -> Remaining flags = 0 (TODO)
+
+  FIXME: only win when only the mines are flaged, and no excess
+         flags where placed.
+  """
+
+  largura = matrixWidth(matrix)
+  altura = matrixHeight(matrix)
+  nMinesLeft = len(posMines)
+  for i in posMines:
+    x = i % largura
+    y = trunc(i / largura)
+    # print(x,y) # debug
+    square = matrix[y][x]
+    # print(square) # debug
+    if square[0]==-1:
+      nMinesLeft -= 1
+
+  # print(nMinesLeft)
+  if nMinesLeft==0:
+    return True
+  return False
 
 
 ### Aux Functions for Matrix
