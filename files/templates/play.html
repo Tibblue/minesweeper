@@ -45,12 +45,70 @@
       <br>
     </div>
 
+    {% if minefieldClass %}
+    <div class="w3-container">
+      <h1>{{minefieldClass.width}}x{{minefieldClass.height}} - {{minefieldClass.nMines}} Minas</h1>
+      <table oncontextmenu="return false;">
+        {% for linha in minefieldClass.matrixTuples %}
+        {% set y = loop.index-1 %}
+        <tr>
+          {% for square in linha %}
+          {% set x = loop.index-1 %}
+          {% if square[0]==0 %}
+          <td align="center" width="32" height="32" onmouseup="WhichButton(event,{{x}},{{y}})">
+            <img src="/static/images/block.jpg" alt="Block" width="32" height="32">
+          </td>
+          {% elif square[0]==-1 %}
+          <td align="center" width="32" height="32" onmouseup="WhichButton(event,{{x}},{{y}})">
+            <img src="/static/images/flag.jpg" alt="Flag" width="32" height="32">
+          </td>
+          {% elif square[1]==-1 %}
+          <td align="center" width="32" height="32">
+            <img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32">
+          </td>
+          {% else %}
+            {% if square[1]>4 %}
+            <td align="center" width="32" height="32" style="background-color:rgb(255, 64, 64)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% elif square[1]==4 %}
+            <td align="center" width="32" height="32" style="background-color:rgb(255, 128, 32)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% elif square[1]==3 %}
+            <td align="center" width="32" height="32" style="background-color:rgb(224, 224, 32)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% elif square[1]==2 %}
+            <td align="center" width="32" height="32" style="background-color:rgb(64, 192, 64)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% elif square[1]==1 %}
+            <td align="center" width="32" height="32" style="background-color:rgb(64, 192, 255)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% else %}
+            <td align="center" width="32" height="32" style="background-color:rgb(192, 192, 192)">
+              <span style="font-size:20px">{{square[1]}}</span>
+            </td>
+            {% endif %}
+          {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
+
+    {% if minefieldHTML %}
     <div class="w3-container">
       {% autoescape false %}
-      <!-- <p>autoescaping is disabled here</p> -->
-      <p>{{ minefieldHTML }}</p>
+      <div>
+        {{ minefieldHTML }}
+      </div>
       {% endautoescape %}
     </div>
+    {% endif %}
 
   </body>
 </html>

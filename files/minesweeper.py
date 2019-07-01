@@ -150,13 +150,23 @@ def drawField():
     for x in range(minefield.width):
       html += '<td align="center" width="32" height="32"'
       if matrix[y][x][0]==0:
-        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/block.jpg" alt="Mine" width="32" height="32">'
+        html += f' onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/block.jpg" alt="Block" width="32" height="32">'
       elif matrix[y][x][0]==-1:
-        html += f' id="mines" onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/flag.jpg" alt="Mine" width="32" height="32">'
+        html += f' onmouseup="WhichButton(event,{x},{y})"><img src="/static/images/flag.jpg" alt="Flag" width="32" height="32">'
+      elif matrix[y][x][1]==-1:
+        html += f'><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32">'
       else:
         if matrix[y][x][1]==-1:
-          html += f'><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32">'
-          # html += f'><a href="/leftClick?x={x}&y={y}"><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32"></a>'
+        if matrix[y][x][1]>4:
+          html += f' style="background-color:rgb(255, 64, 64)">'
+        elif matrix[y][x][1]==4:
+          html += f' style="background-color:rgb(255, 128, 32)">'
+        elif matrix[y][x][1]==3:
+          html += f' style="background-color:rgb(224, 224, 32)">'
+        elif matrix[y][x][1]==2:
+          html += f' style="background-color:rgb(64, 192, 64)">'
+        elif matrix[y][x][1]==1:
+          html += f' style="background-color:rgb(64, 192, 255)">'
         else:
           if matrix[y][x][1]>4:
             html += f' style="background-color:rgb(255, 64, 64)">'
