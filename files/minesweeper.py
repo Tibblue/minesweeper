@@ -156,7 +156,6 @@ def drawField():
       elif matrix[y][x][1]==-1:
         html += f'><img src="/static/images/mineRED.jpg" alt="Mine" width="32" height="32">'
       else:
-        if matrix[y][x][1]==-1:
         if matrix[y][x][1]>4:
           html += f' style="background-color:rgb(255, 64, 64)">'
         elif matrix[y][x][1]==4:
@@ -168,19 +167,8 @@ def drawField():
         elif matrix[y][x][1]==1:
           html += f' style="background-color:rgb(64, 192, 255)">'
         else:
-          if matrix[y][x][1]>4:
-            html += f' style="background-color:rgb(255, 64, 64)">'
-          elif matrix[y][x][1]==4:
-            html += f' style="background-color:rgb(255, 128, 32)">'
-          elif matrix[y][x][1]==3:
-            html += f' style="background-color:rgb(224, 224, 32)">'
-          elif matrix[y][x][1]==2:
-            html += f' style="background-color:rgb(64, 192, 64)">'
-          elif matrix[y][x][1]==1:
-            html += f' style="background-color:rgb(64, 192, 255)">'
-          else:
-            html += f' style="background-color:rgb(192, 192, 192)">'
-          html += '<span style="font-size:20px">'+str(matrix[y][x][1])+'</span>'
+          html += f' style="background-color:rgb(192, 192, 192)">'
+        html += '<span style="font-size:20px">'+str(matrix[y][x][1])+'</span>'
       html += '</td>'
     html += '</tr>'
   html += '</table>\n'
