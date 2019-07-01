@@ -64,8 +64,17 @@ def setRoutes(app):
       # session['minefield'] = Minefield(20,10,30)
       minefield = Minefield(20,10,30)
     minefieldHTML = drawField()
-    minefieldHTML += '<br>'+drawFieldOpen()
+    if request.args.get('assist') is not None:
+      minefieldHTML += '<br>'+drawFieldOpen()
+    else:
+      minefieldHTML += '''
+        <br>
+        <button type="button">
+          <a href="/?assist=yes">Show Minefield (use for guidance)</a>
+        </button>
+      '''
     return render_template('play.html', minefieldHTML=minefieldHTML)
+    # return render_template('play.html', minefieldClass=minefield, minefieldHTML=minefieldHTML)
 
   @app.route('/victory')
   def victory():
