@@ -105,7 +105,7 @@ class Minefield:
     self.matrixTuples = self._generateMatrix(width,height,self.posMines)
 
 
-  def click(self,x,y):
+  def click(self,x,y,expand):
     """(Left) Click - Reveal square
 
     returns -1 if a mine was clicked = lost
@@ -121,6 +121,23 @@ class Minefield:
     if square[1]==-1: # mine square
       return -1
     if square[1]==0: # empty square
+      if expand:
+        if self.isSquare(x-1,y-1):
+          if self.matrixTuples[y-1][x-1][0]==0 : self.click(x-1,y-1,expand=True)
+        if self.isSquare(x-1,y):
+          if self.matrixTuples[y][x-1][0]==0 : self.click(x-1,y,expand=True)
+        if self.isSquare(x-1,y+1):
+          if self.matrixTuples[y+1][x-1][0]==0 : self.click(x-1,y+1,expand=True)
+        if self.isSquare(x,y-1):
+          if self.matrixTuples[y-1][x][0]==0 : self.click(x,y-1,expand=True)
+        if self.isSquare(x,y+1):
+          if self.matrixTuples[y+1][x][0]==0 : self.click(x,y+1,expand=True)
+        if self.isSquare(x+1,y-1):
+          if self.matrixTuples[y-1][x+1][0]==0 : self.click(x+1,y-1,expand=True)
+        if self.isSquare(x+1,y):
+          if self.matrixTuples[y][x+1][0]==0 : self.click(x+1,y,expand=True)
+        if self.isSquare(x+1,y+1):
+          if self.matrixTuples[y+1][x+1][0]==0 : self.click(x+1,y+1,expand=True)
       return 0
     if square[1]>=1: # number square
       return 1
@@ -158,6 +175,19 @@ class Minefield:
     return False
 
 
+  def isSquare(self,x,y):
+    """Check if square is inside the Minefield
+
+    A square with Coord(7,3) in a Minefield of width 5 is not considered
+    a square because its outside the boundaries.
+    """
+
+    if (x>=0 and x<self.width) and (y>=0 and y<self.height):
+      return True
+    return False
+
+
+  # FIXME: use self vars
   def _generateMines(self,width,height,nMines):
     """Generates random positions for mines"""
 
@@ -166,6 +196,7 @@ class Minefield:
       posMines.add(randint(0,width*height-1))
     return posMines
 
+  # FIXME: use self vars
   def _generateMatrix(self,width,height,posMines):
     """Generates Minefield with square status and numbers
 
@@ -185,6 +216,7 @@ class Minefield:
           matrix[j][i] = (0,self._calculateNumber(width,height,i,j,posMines))
     return matrix
 
+  # FIXME: use self vars
   def _calculateNumber(self,width,height,x,y,posMines):
     """Calculate Numbers a square
 
@@ -204,6 +236,7 @@ class Minefield:
 
     nMinesAdjacent = 0
     for (i,j) in adjacentSquares:
+      # FIXME: use isSquare in this if
       if (i>=0 and i<width) and (j>=0 and j<height):
         if i+j*width in posMines:
           nMinesAdjacent += 1

@@ -96,13 +96,12 @@ def setRoutes(app):
   def leftClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    result = minefield.click(x,y)
+    result = minefield.click(x,y,expand=True)
     if result==-1:
       return redirect(url_for('lost'))
-    elif result==0:
-      # TODO: expand surroundings
-      return redirect(url_for('play'))
-    elif result==1:
+    elif result==0 or result==1:
+      # if 'lastURL' in session:
+      #   return redirect(session['lastURL'])
       return redirect(url_for('play'))
     elif result==2:
       return redirect(url_for('victory'))
