@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <!-- <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css"> -->
+    <link rel="stylesheet" href="/static/css/w3.css">
+
+    <title>Minesweeper</title>
+
+    <script>
+      function WhichButton(event, x, y) {
+        // alert("xy:"+x+y+" You pressed button: " + event.button)
+        if (event.button == 0)
+          window.location.replace("/leftClick?x=" + x + "&y=" + y);
+        else
+          window.location.replace("/rightClick?x=" + x + "&y=" + y);
+      }
+    </script>
+
+  </head>
+  <body>
+    <div class="w3-container w3-light-grey">
+      <button type="button">
+        <a href="/newMapEasy">Generate New Map (Easy Dificulty)</a>
+      </button>
+      <button type="button">
+        <a href="/newMapNormal">Generate New Map (Normal Dificulty)</a>
+      </button>
+      <button type="button">
+        <a href="/newMapHard">Generate New Map (Hard Dificulty)</a>
+      </button>
+      <br>
+      <br>
+      <form method="get" action="/custom">
+        Largura:
+        <input type="number" name="largura" placeholder="largura">
+        <br>
+        Altura:
+        <input type="number" name="altura" placeholder="altura">
+        <br>
+        Numero de Minas:
+        <input type="number" name="nMines" placeholder="minas">
+        <br>
+        <input type="submit" value="Generate New Map (Costum Settings)">
+      </form>
+      <br>
+    </div>
+
+    <div class="w3-container">
+      {% autoescape false %}
+      <!-- <p>autoescaping is disabled here</p> -->
+      <p>{{ minefieldHTML }}</p>
+      {% endautoescape %}
+    </div>
+
+  </body>
+</html>

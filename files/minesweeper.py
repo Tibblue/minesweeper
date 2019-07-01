@@ -61,12 +61,11 @@ def setRoutes(app):
   def play():
     global minefield
     if minefield is None:
+      # session['minefield'] = Minefield(20,10,30)
       minefield = Minefield(20,10,30)
-    html = f'<h1>{minefield.width}x{minefield.height} - {minefield.nMines} Minas</h1>'
-    html += buttons
-    html += drawField()
-    html += '<br><br><br><br><br>' + drawFieldOpen()
-    return html
+    minefieldHTML = drawField()
+    minefieldHTML += '<br>'+drawFieldOpen()
+    return render_template('play.html', minefieldHTML=minefieldHTML)
 
   @app.route('/victory')
   def victory():
@@ -144,7 +143,8 @@ def drawField():
   global minefield
   matrix = minefield.matrixTuples
 
-  html = '<table oncontextmenu="return false;">\n'
+  html = f'<h1>{minefield.width}x{minefield.height} - {minefield.nMines} Minas</h1>'
+  html += '<table oncontextmenu="return false;">'
   for y in range(minefield.height):
     html += '<tr>'
     for x in range(minefield.width):
@@ -170,7 +170,7 @@ def drawField():
             html += f' style="background-color:rgb(64, 192, 255)">'
           else:
             html += f' style="background-color:rgb(192, 192, 192)">'
-          html += '<span style="font-size:28px">'+str(matrix[y][x][1])+'</span>'
+          html += '<span style="font-size:20px">'+str(matrix[y][x][1])+'</span>'
       html += '</td>'
     html += '</tr>'
   html += '</table>\n'
@@ -182,26 +182,28 @@ def drawFieldOpen():
   global minefield
   matrix = minefield.matrixTuples
 
-  html = '<table>\n'
+  html = f'<h3>{minefield.width}x{minefield.height} - {minefield.nMines} Minas</h3>'
+  html += '<table>'
   for y in range(minefield.height):
     html += '<tr>'
     for x in range(minefield.width):
-      html += '<td align="center" width="16" height="16"'
+      html += '<td align="center" width="24" height="24"'
       if matrix[y][x][1]==-1:
-        html += '><img src="/static/images/mineRED.jpg" alt="Mine" width="16" height="16">'
+        html += '><img src="/static/images/mineRED.jpg" alt="Mine" width="24" height="24">'
       else:
         if matrix[y][x][1]>4:
-          html += ' style="background-color:rgb(255, 64, 64);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(255, 64, 64);">'
         elif matrix[y][x][1]==4:
-          html += ' style="background-color:rgb(255, 128, 32);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(255, 128, 32);">'
         elif matrix[y][x][1]==3:
-          html += ' style="background-color:rgb(224, 224, 32);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(224, 224, 32);">'
         elif matrix[y][x][1]==2:
-          html += ' style="background-color:rgb(64, 192, 64);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(64, 192, 64);">'
         elif matrix[y][x][1]==1:
-          html += ' style="background-color:rgb(64, 192, 255);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(64, 192, 255);">'
         else:
-          html += ' style="background-color:rgb(192, 192, 192);">'+str(matrix[y][x][1])
+          html += ' style="background-color:rgb(192, 192, 192);">'
+        html += '<span style="font-size:16">'+str(matrix[y][x][1])+'</span>'
       html += '</td>'
     html += '</tr>'
   html += '</table>\n'
@@ -242,6 +244,7 @@ def webFlask(debug):
 
   ### Setting up Flask server
   app = Flask("Minesweeper")
+  app.secret_key = b'batatas'
   setRoutes(app)
 
   ### Open browser

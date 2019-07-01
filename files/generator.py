@@ -161,7 +161,6 @@ class Minefield:
 
   def __init__(self,width,height,nMines):
     self.newMinefield(width,height,nMines)
-    print("New minefield")
 
   def newMinefield(self,width,height,nMines):
     """Generate new Minefield (with given params)
