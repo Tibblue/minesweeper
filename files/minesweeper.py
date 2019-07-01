@@ -96,7 +96,7 @@ def setRoutes(app):
   def leftClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    result = click(x,y,minefield.matrixTuples)
+    result = minefield.click(x,y)
     if result==-1:
       return redirect(url_for('lost'))
     elif result==0:
@@ -111,8 +111,8 @@ def setRoutes(app):
   def rightClick():
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
-    flag(x,y,minefield.matrixTuples)
-    if checkVictory(minefield.matrixTuples,minefield.posMines):
+    minefield.flag(x,y)
+    if minefield.checkVictory():
       return redirect(url_for('victory'))
     else:
       return redirect(url_for('play'))

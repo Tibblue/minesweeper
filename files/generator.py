@@ -60,77 +60,6 @@ def isSide(width,height,x,y):
 
 
 
-### CLICKs
-def click(x,y,matrix):
-  """(Left) Click - Reveal square
-
-  returns -1 if a mine was clicked = lost
-           0 if a empty square was clicked = expand surroundings (TODO)
-           1 if a number square was clicked = show square
-           2 if a flag was clicked = do nothing
-  """
-
-  square = matrix[y][x]
-  if square[0]==-1: # flaged square
-    return 2
-  matrix[y][x] = (1,square[1]) # reveals square
-  if square[1]==-1: # mine square
-    return -1
-  if square[1]==0: # empty square
-    return 0
-  if square[1]>=1: # number square
-    return 1
-
-def flag(x,y,matrix):
-  """(Right) Click - Flag square
-
-  Also unflags, flaged squares.
-  """
-
-  square = matrix[y][x]
-  if square[0]==0:
-    matrix[y][x] = (-1,square[1])
-  elif square[0]==-1:
-    matrix[y][x] = (0,square[1])
-
-def checkVictory(matrix,posMines):
-  """Verifies victory condictions
-
-  Victory condictions:
-    -> All mines must be flaged
-    -> Remaining flags = 0 (TODO)
-
-  FIXME: only win when only the mines are flaged, and no excess
-         flags where placed.
-  """
-
-  largura = matrixWidth(matrix)
-  altura = matrixHeight(matrix)
-  nMinesLeft = len(posMines)
-  for i in posMines:
-    x = i % largura
-    y = trunc(i / largura)
-    # print(x,y) # debug
-    square = matrix[y][x]
-    # print(square) # debug
-    if square[0]==-1:
-      nMinesLeft -= 1
-
-  # print(nMinesLeft)
-  if nMinesLeft==0:
-    return True
-  return False
-
-
-### Aux Functions for Matrix
-def matrixWidth(matrix):
-  return len(matrix[0])
-
-def matrixHeight(matrix):
-  return len(matrix)
-
-
-
 class Minefield:
   """Minefield Matrix
 
@@ -174,6 +103,59 @@ class Minefield:
     self.nMines = nMines
     self.posMines = self._generateMines(width,height,nMines)
     self.matrixTuples = self._generateMatrix(width,height,self.posMines)
+
+
+  def click(self,x,y):
+    """(Left) Click - Reveal square
+
+    returns -1 if a mine was clicked = lost
+            0 if a empty square was clicked = expand surroundings (TODO)
+            1 if a number square was clicked = show square
+            2 if a flag was clicked = do nothing
+    """
+
+    square = self.matrixTuples[y][x]
+    if square[0]==-1: # flaged square
+      return 2
+    self.matrixTuples[y][x] = (1,square[1]) # reveals square
+    if square[1]==-1: # mine square
+      return -1
+    if square[1]==0: # empty square
+      return 0
+    if square[1]>=1: # number square
+      return 1
+
+  def flag(self,x,y):
+    """(Right) Click - Flag square
+
+    Also unflags, flaged squares.
+    """
+
+    square = self.matrixTuples[y][x]
+    if square[0]==0:
+      self.matrixTuples[y][x] = (-1,square[1])
+    elif square[0]==-1:
+      self.matrixTuples[y][x] = (0,square[1])
+
+  def checkVictory(self):
+    """Verifies victory condictions
+
+    Victory condictions:
+      -> ALL mines must be flaged
+      -> ONLY the mines must be flaged
+    """
+
+    nMinesPlaced = nMinesCorrect = 0
+    for line in self.matrixTuples:
+      for (status,number) in line:
+        if status == -1:
+          nMinesPlaced += 1
+          if number == -1:
+            nMinesCorrect += 1
+
+    if nMinesPlaced == nMinesCorrect == len(self.posMines):
+      return True
+    return False
 
 
   def _generateMines(self,width,height,nMines):
