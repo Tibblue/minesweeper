@@ -109,8 +109,8 @@ class Minefield:
     """(Left) Click - Reveal square
 
     returns -1 if a mine was clicked = lost
-            0 if a empty square was clicked = expand surroundings (TODO)
-            1 if a number square was clicked = show square
+            0 if a empty square was clicked = expands if expand=True
+            1 if a number square was clicked = reveal square
             2 if a flag was clicked = do nothing
     """
 

@@ -2,7 +2,7 @@
 Made by, Kiko Oliveira
 
 This is a MineSweeper game, made using Python and Flask.
-It was made for fun, its nothing amazing, expect bugs, and enjoy ^^
+It was made for fun, its nothing amazing (expect bugs), and enjoy ^^
 
 ## Requirements
 
@@ -15,7 +15,7 @@ I assume Python3 is already installed, as its not hard to do so, and probably al
 
 I tried to make the install and run as easy as possible, using .bat files for Windows and a makefile for Linux.
 
-Advices for improvements are appreciated.
+Advices for improvements are appreciated!!!
 
 
 ## Linux
@@ -28,7 +28,7 @@ There you can run `make install` and this will install Flask.
 ### Runing
 
 Move to the folder `files`.
-There you can run `make run` in the bash and this will run the server.
+There you can run `make web` in the bash and this will run the server.
 
 Runing will run the server and open a tab on your default browser on the page for the game (http://localhost:5000).
 

@@ -99,12 +99,10 @@ def setRoutes(app):
     result = minefield.click(x,y,expand=True)
     if result==-1:
       return redirect(url_for('lost'))
-    elif result==0 or result==1:
+    else:
       # if 'lastURL' in session:
       #   return redirect(session['lastURL'])
       return redirect(url_for('play'))
-    elif result==2:
-      return redirect(url_for('victory'))
 
   @app.route('/rightClick')
   def rightClick():
@@ -137,10 +135,12 @@ def setRoutes(app):
   @app.route('/custom')
   def newMapCustom():
     global minefield
-    largura = int(request.args.get('largura'))
-    altura = int(request.args.get('altura'))
+    width = int(request.args.get('width'))
+    height = int(request.args.get('height'))
     nMines = int(request.args.get('nMines'))
-    minefield = Minefield(largura,altura,nMines)
+    # TODO: validar nMines < mapSize/2
+    #       possibly use flask flash messages to show the error
+    minefield = Minefield(width,height,nMines)
     return redirect(url_for('play'))
 
 
