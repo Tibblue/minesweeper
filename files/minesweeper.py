@@ -138,8 +138,10 @@ def setRoutes(app):
     width = int(request.args.get('width'))
     height = int(request.args.get('height'))
     nMines = int(request.args.get('nMines'))
-    # TODO: validar nMines < mapSize/2
-    #       possibly use flask flash messages to show the error
+    # In case there are too many mines, flashes a message to the user
+    if nMines > width*height/2:
+      flash('Too many Mines (cannot have more than half the field with mines)')
+      return redirect(url_for('play'))
     minefield = Minefield(width,height,nMines)
     return redirect(url_for('play'))
 
