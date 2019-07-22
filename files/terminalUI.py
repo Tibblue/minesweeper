@@ -129,8 +129,10 @@ class MapForm(nps.FormBaseNew):
 
   It contains information about the game (player name and minefield size and mine number) and the minefield.
   List of Shortcuts:
-    -> d - reveals a square
+    -> d - discover/reveals a square
     -> f - flags a square
+    -> q - quit/leave game
+    -> r - restart game
     -> arrows - move cursor
     -> h/j/k/l - move cursor
 
@@ -166,7 +168,7 @@ class MapForm(nps.FormBaseNew):
       else:
         self.parentApp.switchForm("menu")
 
-  def h_click(self, ascii_code):
+  def h_discover(self, ascii_code):
     """Minefield Click handler
 
     This function handles a left-click.
@@ -184,6 +186,22 @@ class MapForm(nps.FormBaseNew):
       else:
         self.parentApp.switchForm("menu")
 
+  def h_terminate(self, ascii_code):
+    """Minefield Terminate handler
+
+    This terminates/quits the current game, returning to the Menu.
+    """
+
+    self.parentApp.switchForm("menu")
+
+  def h_restart(self, ascii_code):
+    """Minefield Restart handler
+
+    This restarts the game, with a new Minefield, but the same settings.
+    """
+
+    self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
+
   def create(self):
     """Create Map Form
 
@@ -192,8 +210,10 @@ class MapForm(nps.FormBaseNew):
     """
 
     new_handlers = {
-      "d" : self.h_click,
+      "d" : self.h_discover,
       "f" : self.h_flag,
+      "t" : self.h_terminate,
+      "r" : self.h_restart,
     }
     self.add_handlers(new_handlers)
 
@@ -217,6 +237,8 @@ class MapForm(nps.FormBaseNew):
     self.nextrely -= 1
     self.add(nps.TitleFixedText, name="d: ", value="click", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
     self.add(nps.TitleFixedText, name="f: ", value="flag", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
+    self.add(nps.TitleFixedText, name="t: ", value="terminate", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
+    self.add(nps.TitleFixedText, name="r: ", value="restart", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
 
     # MINEFIELD area
     self.nextrelx = 2
