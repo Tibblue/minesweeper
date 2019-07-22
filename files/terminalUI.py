@@ -5,7 +5,8 @@ Runs the game in the Terminal using npyscreen.
 
 TODO: maybe add flags to change the TUI before initializing
 TODO: use flags to start game immediately at X dificulty
-TODO: Remove Result Form
+TODO: add ranking, and in-game timer
+TODO: add ranking export and import (JSON/CSV)
 """
 
 import npyscreen as nps
@@ -24,7 +25,6 @@ class App(nps.NPSAppManaged):
   def onStart(self):
     self.addForm("menu", MenuForm, "Minesweeper - Main Menu", minimum_lines=16)
     self.addForm("custom", CustomMapForm, "Minesweeper - Custom Dificulty", minimum_lines=16)
-    self.addForm("result", ResultForm, "Minesweeper - Result TUI Form", minimum_lines=16) #TODO: remove
     self.addForm("map", MapForm, "Minesweeper - Game", minimum_lines=28)
 
 ### FORMS
@@ -55,26 +55,27 @@ class MenuForm(nps.ActionForm):
     self.add(nps.FixedText, value="Maximazing the Terminal is very advised!", editable=False, color="CAUTION")
 
   def on_ok(self):
-    result = self.parentApp.getForm("result")
-    result.player.value = self.player.value
+    map = self.parentApp.getForm("map")
+    map.player.value = self.player.value
     selectedDificulty = self.dificulty.values[self.dificulty.value[0]]
-    result.dificulty.value = selectedDificulty
+    map.dificulty.value = selectedDificulty
     if selectedDificulty == "Custom":
       self.parentApp.setNextForm("custom")
     else:
       if selectedDificulty == "Easy":
-        result.width.value = 10
-        result.height.value = 8
-        result.mines.value = 10
+        map.width.value = 10
+        map.height.value = 8
+        map.mines.value = 10
       elif selectedDificulty == "Normal":
-        result.width.value = 20
-        result.height.value = 10
-        result.mines.value = 30
+        map.width.value = 20
+        map.height.value = 10
+        map.mines.value = 30
       elif selectedDificulty == "Hard":
-        result.width.value = 30
-        result.height.value = 20
-        result.mines.value = 125
-      self.parentApp.setNextForm("result")
+        map.width.value = 30
+        map.height.value = 20
+        map.mines.value = 125
+      map.gen_map(map.width.value,map.height.value,map.mines.value)
+      self.parentApp.setNextForm("map")
 
   def on_cancel(self):
     self.parentApp.setNextForm(None)
@@ -110,36 +111,15 @@ class CustomMapForm(nps.ActionForm):
     if int(self.mines.value) > size/2 :
       nps.notify_confirm("Map cannot have more than half mine squares!!!\n(Number Mines > Half Map Size)", "Too many mines!!!", editw=1)
     else:
-      result = self.parentApp.getForm("result")
-      result.width.value = int(self.width.value)
-      result.height.value = int(self.height.value)
-      result.mines.value = int(self.mines.value)
-      self.parentApp.setNextForm("result")
+      map = self.parentApp.getForm("map")
+      map.width.value = int(self.width.value)
+      map.height.value = int(self.height.value)
+      map.mines.value = int(self.mines.value)
+      map.gen_map(map.width.value,map.height.value,map.mines.value)
+      self.parentApp.setNextForm("map")
 
   def on_cancel(self):
     self.parentApp.switchFormPrevious()
-
-# Temporary form    #TODO: remove someday
-class ResultForm(nps.ActionForm):
-  def create(self):
-    self.player = self.add(nps.TitleFixedText, name="You typed: ", editable=False)
-    self.dificulty = self.add(nps.TitleFixedText, name="Dificulty: ", editable=False)
-    self.width = self.add(nps.TitleFixedText, name="Width: ", editable=False)
-    self.height = self.add(nps.TitleFixedText, name="Height: ", editable=False)
-    self.mines = self.add(nps.TitleFixedText, name="Mines: ", editable=False)
-
-  def on_ok(self):
-    map = self.parentApp.getForm("map")
-    map.player.value = self.player.value
-    map.dificulty.value = self.dificulty.value
-    map.width.value = int(self.width.value)
-    map.height.value = int(self.height.value)
-    map.mines.value = int(self.mines.value)
-    map.gen_map(map.width.value,map.height.value,map.mines.value)
-    self.parentApp.setNextForm("map")
-
-  def on_cancel(self):
-    self.parentApp.setNextForm(None)
 
 
 class MapForm(nps.FormBaseNew):
@@ -164,6 +144,8 @@ class MapForm(nps.FormBaseNew):
     Tuple (Status,Number)
       -> status - (flaged -1/hidden 0/visible 1)
       -> number - square number (or -1 for mines)
+
+  #TODO: shortcut pra sair a meio do jogo
   """
 
   def h_flag(self, ascii_code):
@@ -182,7 +164,7 @@ class MapForm(nps.FormBaseNew):
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
         self.display()
       else:
-        self.switchForm("menu")
+        self.parentApp.switchForm("menu")
 
   def h_click(self, ascii_code):
     """Minefield Click handler
@@ -200,7 +182,7 @@ class MapForm(nps.FormBaseNew):
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
         self.display()
       else:
-        self.switchForm("menu")
+        self.parentApp.switchForm("menu")
 
   def create(self):
     """Create Map Form
@@ -296,6 +278,7 @@ class MinefieldGridWidget(nps.SimpleGrid):
         else:
           actual_cell.value = number
           if number == "0":
+            actual_cell.value = " "
             actual_cell.color = 'DEFAULT'
           elif number == "1":
             actual_cell.color = 'STANDOUT'
@@ -303,6 +286,16 @@ class MinefieldGridWidget(nps.SimpleGrid):
             actual_cell.color = 'SAFE'
           elif number == "3":
               actual_cell.color = 'DANGER'
+          elif number == "4":
+              actual_cell.color = 'NO_EDIT'
+          elif number == "5":
+              actual_cell.color = 'NO_EDIT'
+          elif number == "6":
+              actual_cell.color = 'NO_EDIT'
+          elif number == "7":
+              actual_cell.color = 'NO_EDIT'
+          elif number == "8":
+              actual_cell.color = 'NO_EDIT'
           # else:
           #   actual_cell.color = 'DEFAULT' # debug
 
