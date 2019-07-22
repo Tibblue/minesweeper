@@ -16,3 +16,5 @@ runSafeDebug:
 
 install:
 	pip install flask --user
+	pip install npyscreen --user
+	pip install curses --user

@@ -5,6 +5,7 @@ Runs the game in the Terminal using npyscreen.
 
 TODO: maybe add flags to change the TUI before initializing
 TODO: use flags to start game immediately at X dificulty
+TODO: Remove Result Form
 """
 
 import npyscreen
@@ -17,8 +18,6 @@ class App(npyscreen.NPSAppManaged):
   This extends the class NPSAppManaged from npyscreen.
   It defines the Forms to be used later on start.
   It also define "menu" as the first Form.
-
-  TODO: Remove Result Form
   """
 
   STARTING_FORM = "menu"
