@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 
 def main():
   ### Parse Arguments
-  parser = argparse.ArgumentParser()
+  parser = ArgumentParser()
   parser.add_argument('-w','--web', action="store_true",help='Starts in Web/Browser mode (Flask server)')
   parser.add_argument('-d','--debug', action="store_true",help='Enables debug mode for Flask server')
   parser.add_argument('-t','--terminal', action="store_true",help='Starts in Terminal mode')

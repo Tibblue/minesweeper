@@ -8,11 +8,11 @@ TODO: use flags to start game immediately at X dificulty
 TODO: Remove Result Form
 """
 
-import npyscreen
+import npyscreen as nps
 import regex as re
 from generator import *
 
-class App(npyscreen.NPSAppManaged):
+class App(nps.NPSAppManaged):
   """Minesweeper App Module
 
   This extends the class NPSAppManaged from npyscreen.
@@ -22,13 +22,13 @@ class App(npyscreen.NPSAppManaged):
 
   STARTING_FORM = "menu"
   def onStart(self):
-    self.addForm("menu", MenuForm, name="Minesweeper - Main Menu", minimum_lines=16)
-    self.addForm("custom", CustomMapForm, name="Minesweeper - Custom Dificulty", minimum_lines=16)
-    self.addForm("result", ResultForm, name="Minesweeper - Result TUI Form", minimum_lines=16) #TODO: remove
-    self.addForm("map", MapForm, name="Minesweeper - Game", minimum_lines=28)
+    self.addForm("menu", MenuForm, "Minesweeper - Main Menu", minimum_lines=16)
+    self.addForm("custom", CustomMapForm, "Minesweeper - Custom Dificulty", minimum_lines=16)
+    self.addForm("result", ResultForm, "Minesweeper - Result TUI Form", minimum_lines=16) #TODO: remove
+    self.addForm("map", MapForm, "Minesweeper - Game", minimum_lines=28)
 
 ### FORMS
-class MenuForm(npyscreen.ActionForm):
+class MenuForm(nps.ActionForm):
   """Menu Form Module
 
   This extends the class ActionForm from npyscreen.
@@ -47,9 +47,12 @@ class MenuForm(npyscreen.ActionForm):
     It creates all the widgets for the Form.
     """
 
-    self.player = self.add(npyscreen.TitleText, name="Name:")
+    # self.example = self.add(nps.TitleFixedText, name="Fixed Title", value="Fixed Label", editable=False, labelColor="STANDOUT", color="CAUTION")
+    self.player = self.add(nps.TitleText, name="Name:", labelColor="STANDOUT")
     self.nextrely += 1
-    self.dificulty = self.add(npyscreen.TitleSelectOne, name="Dificulty", values=["Custom", "Easy", "Normal", "Hard"], value=[1], max_height=5, scroll_exit=True)
+    self.dificulty = self.add(nps.TitleSelectOne, name="Dificulty", values=["Custom", "Easy", "Normal", "Hard"], value=[1], labelColor="STANDOUT", max_height=5, scroll_exit=True)
+    self.nextrely += 1
+    self.add(nps.FixedText, value="Maximazing the Terminal is very advised!", editable=False, color="CAUTION")
 
   def on_ok(self):
     result = self.parentApp.getForm("result")
@@ -77,7 +80,7 @@ class MenuForm(npyscreen.ActionForm):
     self.parentApp.setNextForm(None)
     # self.parentApp.switchForm(None)
 
-class CustomMapForm(npyscreen.ActionForm):
+class CustomMapForm(nps.ActionForm):
   """Custom Form Module
 
   This extends the class ActionForm from npyscreen.
@@ -98,14 +101,14 @@ class CustomMapForm(npyscreen.ActionForm):
     It creates all the widgets for the Form.
     """
 
-    self.width = self.add(npyscreen.TitleSlider, name="Custom Width (Min 5 | Max 40):", lowest=5, out_of=40, value=5)
-    self.height = self.add(npyscreen.TitleSlider, name="Custom Height (Min 5 | Max 20):", lowest=5, out_of=20, value=5)
-    self.mines = self.add(npyscreen.TitleSlider, name="Custom Number of Mines (Min 10 | Max W*H/2):", lowest=10, out_of=400, value=10)
+    self.width = self.add(nps.TitleSlider, name="Custom Width (Min 5 | Max 40):", labelColor="STANDOUT", lowest=5, out_of=40, value=5)
+    self.height = self.add(nps.TitleSlider, name="Custom Height (Min 5 | Max 20):", labelColor="STANDOUT", lowest=5, out_of=20, value=5)
+    self.mines = self.add(nps.TitleSlider, name="Custom Number of Mines (Min 10 | Max W*H/2):", labelColor="STANDOUT", lowest=10, out_of=400, value=10)
 
   def on_ok(self):
     size = int(self.width.value)*int(self.height.value)
     if int(self.mines.value) > size/2 :
-      npyscreen.notify_confirm("Map cannot have more than half mine squares!!!\n(Number Mines > Half Map Size)", "Too many mines!!!", editw=1)
+      nps.notify_confirm("Map cannot have more than half mine squares!!!\n(Number Mines > Half Map Size)", "Too many mines!!!", editw=1)
     else:
       result = self.parentApp.getForm("result")
       result.width.value = int(self.width.value)
@@ -117,13 +120,13 @@ class CustomMapForm(npyscreen.ActionForm):
     self.parentApp.switchFormPrevious()
 
 # Temporary form    #TODO: remove someday
-class ResultForm(npyscreen.ActionForm, npyscreen.FormWithMenus):
+class ResultForm(nps.ActionForm):
   def create(self):
-    self.player = self.add(npyscreen.TitleFixedText, name="You typed: ", editable=False)
-    self.dificulty = self.add(npyscreen.TitleFixedText, name="Dificulty: ", editable=False)
-    self.width = self.add(npyscreen.TitleFixedText, name="Width: ", editable=False)
-    self.height = self.add(npyscreen.TitleFixedText, name="Height: ", editable=False)
-    self.mines = self.add(npyscreen.TitleFixedText, name="Mines: ", editable=False)
+    self.player = self.add(nps.TitleFixedText, name="You typed: ", editable=False)
+    self.dificulty = self.add(nps.TitleFixedText, name="Dificulty: ", editable=False)
+    self.width = self.add(nps.TitleFixedText, name="Width: ", editable=False)
+    self.height = self.add(nps.TitleFixedText, name="Height: ", editable=False)
+    self.mines = self.add(nps.TitleFixedText, name="Mines: ", editable=False)
 
   def on_ok(self):
     map = self.parentApp.getForm("map")
@@ -139,7 +142,7 @@ class ResultForm(npyscreen.ActionForm, npyscreen.FormWithMenus):
     self.parentApp.setNextForm(None)
 
 
-class MapForm(npyscreen.FormBaseNew):
+class MapForm(nps.FormBaseNew):
   """Map Form Module
 
   This extends the class FormBaseNew from npyscreen.
@@ -161,8 +164,6 @@ class MapForm(npyscreen.FormBaseNew):
     Tuple (Status,Number)
       -> status - (flaged -1/hidden 0/visible 1)
       -> number - square number (or -1 for mines)
-
-  TODO: Add Victory and Lost screens
   """
 
   def h_flag(self, ascii_code):
@@ -176,13 +177,12 @@ class MapForm(npyscreen.FormBaseNew):
     y = self.minefieldGrid.edit_cell[0]
     self.minefieldClass.flag(x,y)
     if self.minefieldClass.checkVictory():
-      self.player.value = "WIN" # debug
-      response = npyscreen.notify_yes_no("You Won the Game !!!\nDo you wish to replay the Map?", title="VICTORY", form_color='STANDOUT', wrap=True, editw=1)
+      response = nps.notify_yes_no("You Won the Game !!!\nDo you wish to replay the Map?", title="VICTORY", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
+        self.display()
       else:
         self.switchForm("menu")
-    self.display()
 
   def h_click(self, ascii_code):
     """Minefield Click handler
@@ -195,13 +195,12 @@ class MapForm(npyscreen.FormBaseNew):
     y = self.minefieldGrid.edit_cell[0]
     result = self.minefieldClass.click(x,y,expand=True)
     if result == -1:
-      self.player.value = "LOST" # debug
-      response = npyscreen.notify_yes_no("You Lost the Game :(\nDo you wish to retry the Map?", title="LOST", form_color='STANDOUT', wrap=True, editw=1)
+      response = nps.notify_yes_no("You Lost the Game :(\nDo you wish to retry the Map?", title="LOST", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
+        self.display()
       else:
         self.switchForm("menu")
-    self.display()
 
   def create(self):
     """Create Map Form
@@ -216,18 +215,28 @@ class MapForm(npyscreen.FormBaseNew):
     }
     self.add_handlers(new_handlers)
 
-    self.player = self.add(npyscreen.TitleFixedText, name="Your Name: ", use_two_lines=False, begin_entry_at=11, editable=False)
-    self.dificulty = self.add(npyscreen.TitleFixedText, name="Dificulty: ", use_two_lines=False, begin_entry_at=11, editable=False)
+    # INFO area
+    self.player = self.add(nps.TitleFixedText, name="Your Name: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=11, editable=False)
+    self.dificulty = self.add(nps.TitleFixedText, name="Dificulty: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=11, editable=False)
     self.nextrelx += 24
     self.nextrely -= 1
-    self.width = self.add(npyscreen.TitleFixedText, name="Width: ", use_two_lines=False, begin_entry_at=7, editable=False)
+    self.width = self.add(nps.TitleFixedText, name="Width: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=7, editable=False)
     self.nextrelx += 16
     self.nextrely -= 1
-    self.height = self.add(npyscreen.TitleFixedText, name="Height: ", use_two_lines=False, begin_entry_at=8, editable=False)
+    self.height = self.add(nps.TitleFixedText, name="Height: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=8, editable=False)
     self.nextrelx += 16
     self.nextrely -= 1
-    self.mines = self.add(npyscreen.TitleFixedText, name="Mines: ", use_two_lines=False, begin_entry_at=7, editable=False)
+    self.mines = self.add(nps.TitleFixedText, name="Mines: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=7, editable=False)
 
+    # SHORTCUTS area
+    self.nextrelx = 2
+    self.add(nps.FixedText, value="Shorcuts: ", color="STANDOUT", editable=False)
+    self.nextrelx += 12
+    self.nextrely -= 1
+    self.add(nps.TitleFixedText, name="d: ", value="click", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
+    self.add(nps.TitleFixedText, name="f: ", value="flag", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
+
+    # MINEFIELD area
     self.nextrelx = 2
     self.nextrely += 1
     self.minefieldGrid = self.add(MinefieldGridWidget, name=" ", column_width=2, col_margin=0, row_height=1)
@@ -245,7 +254,7 @@ class MapForm(npyscreen.FormBaseNew):
 
 
 ### WIDGETS
-class MinefieldGridWidget(npyscreen.SimpleGrid):
+class MinefieldGridWidget(nps.SimpleGrid):
   """Minefield Widget Module
 
   This extends the class SimpleGrid from npyscreen.
