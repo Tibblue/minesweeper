@@ -5,13 +5,16 @@ Runs the game in the Terminal using npyscreen.
 
 TODO: maybe add flags to change the TUI before initializing
 TODO: use flags to start game immediately at X dificulty
-TODO: add ranking, and in-game timer
+TODO: add ranking
 TODO: add ranking export and import (JSON/CSV)
 """
 
+from generator import Minefield
 import npyscreen as nps
 import regex as re
-from generator import *
+import time
+import threading
+# from math import trunc
 
 class App(nps.NPSAppManaged):
   """Minesweeper App Module
@@ -158,7 +161,10 @@ class MapForm(nps.FormBaseNew):
     y = self.minefieldGrid.edit_cell[0]
     self.minefieldClass.flag(x,y)
     if self.minefieldClass.checkVictory():
-      response = nps.notify_yes_no("You Won the Game !!!\nDo you wish to replay the Map?", title="VICTORY", form_color='STANDOUT', wrap=True, editw=1)
+      self.timer_end = time.time()
+      self.final_time = self.timer_end - self.timer_start
+      self.timer_start = 0
+      response = nps.notify_yes_no("You Won the Game !!!\nTime: "+str(self.final_time)+"\nDo you wish to replay the Map?", title="VICTORY", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
         self.display()
@@ -172,6 +178,11 @@ class MapForm(nps.FormBaseNew):
     This reveals a square in-game.
     """
 
+    if self.timer_start == 0:
+      self.timer_start = time.time()
+      self.timer.value = "0"
+      self.timer.display()
+
     x = self.minefieldGrid.edit_cell[1]
     y = self.minefieldGrid.edit_cell[0]
     result = self.minefieldClass.click(x,y,expand=True)
@@ -181,7 +192,10 @@ class MapForm(nps.FormBaseNew):
         result = self.minefieldClass.click(x,y,expand=True)
       self.display()
     if result == -1: # mine
-      response = nps.notify_yes_no("You Lost the Game :(\nDo you wish to retry the Map?", title="LOST", form_color='STANDOUT', wrap=True, editw=1)
+      self.timer_end = time.time()
+      self.final_time = self.timer_end - self.timer_start
+      self.timer_start = 0
+      response = nps.notify_yes_no("You Lost the Game :(\nYour current time was: "+str(self.final_time)+"\nDo you wish to retry the Map?\n", title="LOST", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
         self.display()
@@ -194,6 +208,9 @@ class MapForm(nps.FormBaseNew):
     This terminates/quits the current game, returning to the Menu.
     """
 
+    self.timer_start = 0 # stop timer
+    self.timer.value = "0"
+    self.timer.display()
     self.parentApp.switchForm("menu")
 
   def h_restart(self, ascii_code):
@@ -202,6 +219,9 @@ class MapForm(nps.FormBaseNew):
     This restarts the game, with a new Minefield, but the same settings.
     """
 
+    self.timer_start = 0 # stop timer
+    self.timer.value = "0"
+    self.timer.display()
     self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
 
   def create(self):
@@ -222,6 +242,12 @@ class MapForm(nps.FormBaseNew):
 
     # INFO area
     self.player = self.add(nps.TitleFixedText, name="Your Name: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=11, editable=False)
+    self.nextrelx += 24
+    self.nextrely -= 1
+    self.timer = self.add(nps.TitleFixedText, name="Time:", value="0", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=7, editable=False)
+
+    # MAP INFO area
+    self.nextrelx = 2
     self.dificulty = self.add(nps.TitleFixedText, name="Dificulty: ", labelColor="STANDOUT", use_two_lines=False, begin_entry_at=11, editable=False)
     self.nextrelx += 24
     self.nextrely -= 1
@@ -248,6 +274,24 @@ class MapForm(nps.FormBaseNew):
     self.nextrelx = 2
     self.nextrely += 1
     self.minefieldGrid = self.add(MinefieldGridWidget, name=" ", column_width=2, col_margin=0, row_height=1)
+
+    # TIMER stuff
+    self.timer_start = 0
+    self.thread_time = threading.Thread(target=self.update_time,args=())
+    self.thread_time.daemon = True
+    self.thread_time.start()
+
+  def update_time(self):
+    """ Timer handler
+
+    This function will update the timer label 1 time per second (in pratice makes the timer go up by 1 second)
+    """
+    while True:
+      if self.timer_start != 0:
+        self.timer_end = time.time()
+        self.timer.value = str(int(self.timer_end - self.timer_start))
+        self.timer.display()
+      time.sleep(1)
 
   def gen_map(self, width, height, mines):
     """Generate Minesweeper Map

@@ -9,7 +9,6 @@ TODO: Improve Minefield Class
 """
 
 from random import randint
-from math import trunc
 
 
 ### BORDERs check
