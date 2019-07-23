@@ -95,10 +95,16 @@ def setRoutes(app):
 
   @app.route('/leftClick')
   def leftClick():
+    global minefield
     x = int(request.args.get('x'))
     y = int(request.args.get('y'))
     result = minefield.click(x,y,expand=True)
-    if result==-1:
+    if result==-2: # mine on first click
+      while result==-2: # generate new map until its safe
+        minefield = Minefield(minefield.width,minefield.height,minefield.nMines)
+        result = minefield.click(x,y,expand=True)
+      return redirect(url_for('play'))
+    elif result==-1:
       return redirect(url_for('lost'))
     else:
       # if 'lastURL' in session:

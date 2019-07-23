@@ -77,13 +77,14 @@ class Minefield:
     List with the positions of the mines
   matrixTuples : Matrix
     Matrix where each position is a Tuple (Status,Number)
+  firstClick : Boolean
+    Is True if player didnt click yet (next click is the first)
 
   NOTES:
     -> Coord(x,y) = Position(x+y*width)
     Each cell/square is a Tuple (Status,Number).
       -> status - (flaged -1/hidden 0/visible 1)
       -> number - square number (or -1 for mines)
-
 
   TODO: move remaining function to the class
   """
@@ -103,18 +104,25 @@ class Minefield:
     self.nMines = nMines
     self.posMines = self._generateMines(width,height,nMines)
     self.matrixTuples = self._generateMatrix(width,height,self.posMines)
+    self.firstClick = True
 
 
   def click(self,x,y,expand):
     """(Left) Click - Reveal square
 
-    returns -1 if a mine was clicked = lost
+    returns -2 if a mine was clicked on the first click =
+                  should generate a new map
+            -1 if a mine was clicked = lost
             0 if a empty square was clicked = expands if expand=True
             1 if a number square was clicked = reveal square
             2 if a flag was clicked = do nothing
     """
 
     square = self.matrixTuples[y][x]
+    if self.firstClick:
+      self.firstClick = False
+      if square[1]==-1:
+        return -2 # mine on first square
     if square[0]==-1: # flaged square
       return 2
     self.matrixTuples[y][x] = (1,square[1]) # reveals square

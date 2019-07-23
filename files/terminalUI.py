@@ -91,8 +91,6 @@ class CustomMapForm(nps.ActionForm):
   Pressing OK takes the Player to the game Screen/Form.
 
   Note: Number of Mines cannot be greater than half of the Minefield size.
-
-  TODO: Change sliders to just text input ???
   """
 
   def create(self):
@@ -133,6 +131,7 @@ class MapForm(nps.FormBaseNew):
     -> f - flags a square
     -> q - quit/leave game
     -> r - restart game
+    -> p - pause game (TODO)
     -> arrows - move cursor
     -> h/j/k/l - move cursor
 
@@ -146,8 +145,6 @@ class MapForm(nps.FormBaseNew):
     Tuple (Status,Number)
       -> status - (flaged -1/hidden 0/visible 1)
       -> number - square number (or -1 for mines)
-
-  #TODO: shortcut pra sair a meio do jogo
   """
 
   def h_flag(self, ascii_code):
@@ -178,7 +175,12 @@ class MapForm(nps.FormBaseNew):
     x = self.minefieldGrid.edit_cell[1]
     y = self.minefieldGrid.edit_cell[0]
     result = self.minefieldClass.click(x,y,expand=True)
-    if result == -1:
+    if result == -2: # mine on first square
+      while result == -2: # generate new map until its safe
+        self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
+        result = self.minefieldClass.click(x,y,expand=True)
+      self.display()
+    if result == -1: # mine
       response = nps.notify_yes_no("You Lost the Game :(\nDo you wish to retry the Map?", title="LOST", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
@@ -214,6 +216,7 @@ class MapForm(nps.FormBaseNew):
       "f" : self.h_flag,
       "t" : self.h_terminate,
       "r" : self.h_restart,
+      # "p" : self.h_pause,
     }
     self.add_handlers(new_handlers)
 
@@ -239,6 +242,7 @@ class MapForm(nps.FormBaseNew):
     self.add(nps.TitleFixedText, name="f: ", value="flag", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
     self.add(nps.TitleFixedText, name="t: ", value="terminate", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
     self.add(nps.TitleFixedText, name="r: ", value="restart", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
+    # self.add(nps.TitleFixedText, name="p: ", value="pause", labelColor="GOOD", use_two_lines=False, begin_entry_at=4, editable=False)
 
     # MINEFIELD area
     self.nextrelx = 2
