@@ -5,15 +5,15 @@
 
   TODO: maybe add flags to change the TUI before initializing
   TODO: use flags to start game immediately at X dificulty
-  TODO: add ranking
-  TODO: add ranking export and import (JSON/CSV)
+  TODO: ranking - add datetime
 """
 
 from generator import Minefield
 import npyscreen as nps
 import regex as re
+import json
 import time
-import threading
+from threading import Thread
 import click
 
 class App(nps.NPSAppManaged):
@@ -30,6 +30,7 @@ class App(nps.NPSAppManaged):
   STARTING_FORM = "menu"
   map = None
   player = "NoName"
+
   def onStart(self):
     self.addForm("menu", MenuForm, "Minesweeper - Main Menu", minimum_lines=16)
     self.addForm("custom", CustomMapForm, "Minesweeper - Custom Dificulty", minimum_lines=16)
@@ -181,6 +182,7 @@ class MapForm(nps.FormBaseNew):
       self.timer_end = time.time()
       self.final_time = self.timer_end - self.timer_start
       self.timer_start = 0
+      submit_time(self.dificulty.value, self.player.value, self.timer.value)
       response = nps.notify_yes_no("You Won the Game !!!\nTime: "+str(self.final_time)+"\nDo you wish to replay the Map?", title="VICTORY", form_color='STANDOUT', wrap=True, editw=1)
       if response:
         self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
@@ -295,7 +297,7 @@ class MapForm(nps.FormBaseNew):
 
     # TIMER stuff
     self.timer_start = 0
-    self.thread_time = threading.Thread(target=self.update_time,args=())
+    self.thread_time = Thread(target=self.update_time,args=())
     self.thread_time.daemon = True
     self.thread_time.start()
 
@@ -393,6 +395,7 @@ class MinefieldGridWidget(nps.SimpleGrid):
 
 
 
+
 def runTerminal(options):
   """Run the game in Terminal
 
@@ -443,21 +446,61 @@ def export_rankings(file):
     print("Rankings export failed...")
 
 
+def get_rankings():
+  """Get Rankings for all dificulties"""
+
+  rankings_file = open('ranking.json')
+  rankings = json.load(rankings_file)
+  rankings_list = []
+  for dificulty in rankings:
+    dificulty_ranks_list = []
+    for player in rankings[dificulty]:
+      for time in rankings[dificulty][player]:
+        dificulty_ranks_list.append((player,time))
+    dificulty_ranks_list.sort(key = lambda pair: pair[1])
+    # print(dificulty, dificulty_ranks_list) # debug
+    rankings_list.append((dificulty,dificulty_ranks_list))
+  return rankings_list
+
+def show_rankings(rankings, top):
+  """Rankings Pretty print"""
+
+  if top<1: top=5
+  for dificulty,rankings in rankings:
+    print(dificulty)
+    for player,time in rankings[:top]:
+      print(">",player,time)
+
+def submit_time(dificulty, player, time):
+  rankings_file = open('ranking.json')
+  rankings = json.load(rankings_file)
+  try:
+    rankings[dificulty][player].append(time)
+  except:
+    rankings[dificulty][player] = [time]
+  rankings_file = open('ranking.json', 'w')
+  json.dump(rankings, rankings_file, indent=2)
+
 
 
 @click.command()
 @click.option('-n', '--name', default="NoName", help='Player name (used in rankings)')
 @click.option('-d', '--dificulty', help='Map Dificulty (Easy, Normal, Hard, Custom)')
+@click.option('--rankings', default=5, help='Show Rankings')
 @click.option('--import', 'import_file', help='Import Rankings from file')
 @click.option('--export', 'export_file', help='Export Rankings to file')
-def main(name, dificulty, import_file, export_file, merge_file):
-  print("ARGS=>", name, dificulty, import_file, export_file, merge_file) # debug
-
+@click.option('--merge', 'merge_file', help='Merge Rankings from file with current Rankings')
+def main(name, dificulty, rankings, import_file, export_file, merge_file):
   if import_file:
     import_rankings(import_file)
   elif export_file:
     export_rankings(export_file)
   elif merge_file:
+    merge_rankings(merge_file)
+  elif rankings:
+    ranks = get_rankings()
+    show_rankings(ranks, rankings)
+  elif dificulty:
     runTerminal((name, dificulty))
   else:
     runTerminal(None)
