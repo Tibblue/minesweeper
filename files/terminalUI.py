@@ -15,7 +15,6 @@ import regex as re
 import time
 import threading
 import click
-# from math import trunc
 
 class App(nps.NPSAppManaged):
   """Minesweeper App Module
@@ -84,7 +83,7 @@ class MenuForm(nps.ActionForm):
 
   def on_ok(self):
     map = self.parentApp.getForm("map")
-    map.player.value = self.player.value
+    map.player.value = self.player.value or "NoName"
     selectedDificulty = self.dificulty.values[self.dificulty.value[0]]
     map.dificulty.value = selectedDificulty
     if selectedDificulty == "Custom":
@@ -411,11 +410,54 @@ def runTerminal(options):
   app.run()
 
 
+def import_rankings(file):
+  """Import rankings from file
+
+    Rankings are saved in the file "ranking.json"
+    Receives a ranking file, which becomes the new "ranking.json".
+  """
+
+  try:    ranking_file = open("ranking.json", "r")
+  except: print("ranking.json file is missing or was deleted.")
+  try:
+    import_file = open(file, "r")
+    ranking_file.write(import_file.read())
+    print("Rankings imported successfully!")
+  except:
+    print("Rankings import failed...")
+
+def export_rankings(file):
+  """Export rankings to file
+
+    Rankings are saved in the file "ranking.json"
+    Exports rankings to the received file name.
+  """
+
+  try:    ranking_file = open("ranking.json", "r")
+  except: print("ranking.json file is missing or was deleted.")
+  try:
+    export_file = open(file, "w")
+    export_file.write(ranking_file.read())
+    print("Rankings exported successfully!")
+  except:
+    print("Rankings export failed...")
+
+
+
+
 @click.command()
-@click.option('--name', default="NoName", help='Player name (used in rankings)')
-@click.option('--dificulty', help='Map Dificulty (Easy, Normal, Hard, Custom)')
-def main(name, dificulty):
-  if dificulty:
+@click.option('-n', '--name', default="NoName", help='Player name (used in rankings)')
+@click.option('-d', '--dificulty', help='Map Dificulty (Easy, Normal, Hard, Custom)')
+@click.option('--import', 'import_file', help='Import Rankings from file')
+@click.option('--export', 'export_file', help='Export Rankings to file')
+def main(name, dificulty, import_file, export_file, merge_file):
+  print("ARGS=>", name, dificulty, import_file, export_file, merge_file) # debug
+
+  if import_file:
+    import_rankings(import_file)
+  elif export_file:
+    export_rankings(export_file)
+  elif merge_file:
     runTerminal((name, dificulty))
   else:
     runTerminal(None)
