@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Minesweeper Game package
 
-Can run the game in the Browser using Flask.
-Use --help to show the possible flags and their use
+  Can run the game in the Browser using Flask.
+  Use --help to show the possible flags and their use
 
-TODO: Finish TerminalUI (TUI)
-TODO: Improve WebFlask (WebGUI)
+  TODO: Finish TerminalUI (TUI)
+  TODO: Improve WebFlask (WebGUI)
 """
 
 from webGUI import runWebFlask

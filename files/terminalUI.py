@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Minesweeper Game package (Terminal)
 
-Runs the game in the Terminal using npyscreen.
+  Runs the game in the Terminal using npyscreen.
 
-TODO: maybe add flags to change the TUI before initializing
-TODO: use flags to start game immediately at X dificulty
-TODO: add ranking
-TODO: add ranking export and import (JSON/CSV)
+  TODO: maybe add flags to change the TUI before initializing
+  TODO: use flags to start game immediately at X dificulty
+  TODO: add ranking
+  TODO: add ranking export and import (JSON/CSV)
 """
 
 from generator import Minefield
@@ -14,40 +14,65 @@ import npyscreen as nps
 import regex as re
 import time
 import threading
+import click
 # from math import trunc
 
 class App(nps.NPSAppManaged):
   """Minesweeper App Module
 
-  This extends the class NPSAppManaged from npyscreen.
-  It defines the Forms to be used later on start.
-  It also define "menu" as the first Form.
+    This extends the class NPSAppManaged from npyscreen.
+    It defines the Forms to be used later on start.
+    It also define "menu" as the first Form.
+
+    If a Map Dificulty was set, then the App will jump imediatly to the
+    Map Form and will use the set Dificulty and Player name.
   """
 
   STARTING_FORM = "menu"
+  map = None
+  player = "NoName"
   def onStart(self):
     self.addForm("menu", MenuForm, "Minesweeper - Main Menu", minimum_lines=16)
     self.addForm("custom", CustomMapForm, "Minesweeper - Custom Dificulty", minimum_lines=16)
     self.addForm("map", MapForm, "Minesweeper - Game", minimum_lines=28)
+    if self.map:
+      map = self.getForm("map")
+      map.player.value = self.player
+      map.dificulty.value = self.map
+      if self.map == "Custom":
+        pass
+      elif self.map == "Easy":
+        map.gen_map(10,8,10)
+      elif self.map == "Normal":
+        map.gen_map(20,10,30)
+      elif self.map == "Hard":
+        map.gen_map(30,20,125)
+      self.setNextForm("map")
+
+  def setGameOptions(self, name, dificulty):
+    """Set game options"""
+    self.player = name
+    self.map = dificulty
+
 
 ### FORMS
 class MenuForm(nps.ActionForm):
   """Menu Form Module
 
-  This extends the class ActionForm from npyscreen.
+    This extends the class ActionForm from npyscreen.
 
-  It contains a Field for the Player Name and Dificulty selector.
-  Pressing Cancel leaves the game.
-  Pressing OK takes the Player to the game Screen/Form, unless the player
-  selected the Custom dificulty (in this case player is taken to a extra
-  Form, for custom size settings, before going into game).
+    It contains a Field for the Player Name and Dificulty selector.
+    Pressing Cancel leaves the game.
+    Pressing OK takes the Player to the game Screen/Form, unless the player
+    selected the Custom dificulty (in this case player is taken to a extra
+    Form, for custom size settings, before going into game).
   """
 
   def create(self):
     """Create Custom Form
 
-    This function is called when Custom Form is created.
-    It creates all the widgets for the Form.
+      This function is called when Custom Form is created.
+      It creates all the widgets for the Form.
     """
 
     # self.example = self.add(nps.TitleFixedText, name="Fixed Title", value="Fixed Label", editable=False, labelColor="STANDOUT", color="CAUTION")
@@ -66,18 +91,11 @@ class MenuForm(nps.ActionForm):
       self.parentApp.setNextForm("custom")
     else:
       if selectedDificulty == "Easy":
-        map.width.value = 10
-        map.height.value = 8
-        map.mines.value = 10
+        map.gen_map(10,8,10)
       elif selectedDificulty == "Normal":
-        map.width.value = 20
-        map.height.value = 10
-        map.mines.value = 30
+        map.gen_map(20,10,30)
       elif selectedDificulty == "Hard":
-        map.width.value = 30
-        map.height.value = 20
-        map.mines.value = 125
-      map.gen_map(map.width.value,map.height.value,map.mines.value)
+        map.gen_map(30,20,125)
       self.parentApp.setNextForm("map")
 
   def on_cancel(self):
@@ -87,20 +105,20 @@ class MenuForm(nps.ActionForm):
 class CustomMapForm(nps.ActionForm):
   """Custom Form Module
 
-  This extends the class ActionForm from npyscreen.
+    This extends the class ActionForm from npyscreen.
 
-  It contains 3 sliders for the Player to choose the Custom Widht, Height and Number of Mines.
-  Pressing Cancel takes the Player back to the Menu.
-  Pressing OK takes the Player to the game Screen/Form.
+    It contains 3 sliders for the Player to choose the Custom Widht, Height and Number of Mines.
+    Pressing Cancel takes the Player back to the Menu.
+    Pressing OK takes the Player to the game Screen/Form.
 
-  Note: Number of Mines cannot be greater than half of the Minefield size.
+    Note: Number of Mines cannot be greater than half of the Minefield size.
   """
 
   def create(self):
     """Create Custom Form
 
-    This function is called when Custom Form is created.
-    It creates all the widgets for the Form.
+      This function is called when Custom Form is created.
+      It creates all the widgets for the Form.
     """
 
     self.width = self.add(nps.TitleSlider, name="Custom Width (Min 5 | Max 40):", labelColor="STANDOUT", lowest=5, out_of=40, value=5)
@@ -112,11 +130,11 @@ class CustomMapForm(nps.ActionForm):
     if int(self.mines.value) > size/2 :
       nps.notify_confirm("Map cannot have more than half mine squares!!!\n(Number Mines > Half Map Size)", "Too many mines!!!", editw=1)
     else:
+      width = int(self.width.value)
+      height = int(self.height.value)
+      mines = int(self.mines.value)
       map = self.parentApp.getForm("map")
-      map.width.value = int(self.width.value)
-      map.height.value = int(self.height.value)
-      map.mines.value = int(self.mines.value)
-      map.gen_map(map.width.value,map.height.value,map.mines.value)
+      map.gen_map(width,height,mines)
       self.parentApp.setNextForm("map")
 
   def on_cancel(self):
@@ -126,35 +144,35 @@ class CustomMapForm(nps.ActionForm):
 class MapForm(nps.FormBaseNew):
   """Map Form Module
 
-  This extends the class FormBaseNew from npyscreen.
+    This extends the class FormBaseNew from npyscreen.
 
-  It contains information about the game (player name and minefield size and mine number) and the minefield.
-  List of Shortcuts:
-    -> d - discover/reveals a square
-    -> f - flags a square
-    -> q - quit/leave game
-    -> r - restart game
-    -> p - pause game (TODO)
-    -> arrows - move cursor
-    -> h/j/k/l - move cursor
+    It contains information about the game (player name and minefield size and mine number) and the minefield.
+    List of Shortcuts:
+      -> d - discover/reveals a square
+      -> f - flags a square
+      -> q - quit/leave game
+      -> r - restart game
+      -> p - pause game (TODO)
+      -> arrows - move cursor
+      -> h/j/k/l - move cursor
 
-  Attributes
-  ----------
-  minefieldClass : Minefield Class from generator.py
-    Matrix where each position is a Tuple (Status,Number)
+    Attributes
+    ----------
+    minefieldClass : Minefield Class from generator.py
+      Matrix where each position is a Tuple (Status,Number)
 
-  NOTES:
-    Each cell/square (from the class matrixTuples variable) is a
-    Tuple (Status,Number)
-      -> status - (flaged -1/hidden 0/visible 1)
-      -> number - square number (or -1 for mines)
+    NOTES:
+      Each cell/square (from the class matrixTuples variable) is a
+      Tuple (Status,Number)
+        -> status - (flaged -1/hidden 0/visible 1)
+        -> number - square number (or -1 for mines)
   """
 
   def h_flag(self, ascii_code):
     """Minefield Flag handler
 
-    This function handles a right-click.
-    This flags a square in-game.
+      This function handles a right-click.
+      This flags a square in-game.
     """
 
     x = self.minefieldGrid.edit_cell[1]
@@ -174,8 +192,8 @@ class MapForm(nps.FormBaseNew):
   def h_discover(self, ascii_code):
     """Minefield Click handler
 
-    This function handles a left-click.
-    This reveals a square in-game.
+      This function handles a left-click.
+      This reveals a square in-game.
     """
 
     if self.timer_start == 0:
@@ -205,7 +223,7 @@ class MapForm(nps.FormBaseNew):
   def h_terminate(self, ascii_code):
     """Minefield Terminate handler
 
-    This terminates/quits the current game, returning to the Menu.
+      This terminates/quits the current game, returning to the Menu.
     """
 
     self.timer_start = 0 # stop timer
@@ -216,7 +234,7 @@ class MapForm(nps.FormBaseNew):
   def h_restart(self, ascii_code):
     """Minefield Restart handler
 
-    This restarts the game, with a new Minefield, but the same settings.
+      This restarts the game, with a new Minefield, but the same settings.
     """
 
     self.timer_start = 0 # stop timer
@@ -224,11 +242,12 @@ class MapForm(nps.FormBaseNew):
     self.timer.display()
     self.gen_map(int(self.width.value),int(self.height.value),int(self.mines.value))
 
+  # def onStart(self):
   def create(self):
     """Create Map Form
 
-    This function is called when Map Form is created.
-    It creates all the widgets for the Form and the shortcut handlers.
+      This function is called when Map Form is created.
+      It creates all the widgets for the Form and the shortcut handlers.
     """
 
     new_handlers = {
@@ -284,7 +303,8 @@ class MapForm(nps.FormBaseNew):
   def update_time(self):
     """ Timer handler
 
-    This function will update the timer label 1 time per second (in pratice makes the timer go up by 1 second)
+      This function will update the timer label 1 time per second
+      (in pratice makes the timer go up by 1 second)
     """
     while True:
       if self.timer_start != 0:
@@ -296,11 +316,14 @@ class MapForm(nps.FormBaseNew):
   def gen_map(self, width, height, mines):
     """Generate Minesweeper Map
 
-    Uses the Minefield Class from generator.py
-    Creates a instance of Minefield with the given paramaters and
-    passes the matrix values to the Minefield widget values.
+      Uses the Minefield Class from generator.py
+      Creates a instance of Minefield with the given paramaters and
+      passes the matrix values to the Minefield widget values.
     """
 
+    self.width.value = width
+    self.height.value = height
+    self.mines.value = mines
     self.minefieldClass = Minefield(width,height,mines)
     self.minefieldGrid.values = self.minefieldClass.matrixTuples
 
@@ -309,22 +332,22 @@ class MapForm(nps.FormBaseNew):
 class MinefieldGridWidget(nps.SimpleGrid):
   """Minefield Widget Module
 
-  This extends the class SimpleGrid from npyscreen.
+    This extends the class SimpleGrid from npyscreen.
 
-  It contains the minefield grid.
-  It applies custom colors to the square depending on the square value.
+    It contains the minefield grid.
+    It applies custom colors to the square depending on the square value.
 
-  NOTES:
-    Each cell is a Tuple (Status,Number)
-      -> status - (flaged -1/hidden 0/visible 1)
-      -> number - square number (or -1 for mines)
+    NOTES:
+      Each cell is a Tuple (Status,Number)
+        -> status - (flaged -1/hidden 0/visible 1)
+        -> number - square number (or -1 for mines)
   """
 
   def custom_print_cell(self, actual_cell, display_value):
     """Custom cell color and value
 
-    This function changes the color of the cell, depending on its
-    gameplay status and value.
+      This function changes the color of the cell, depending on its
+      gameplay status and value.
     """
 
     if display_value:
@@ -371,11 +394,31 @@ class MinefieldGridWidget(nps.SimpleGrid):
 
 
 
-def runTerminal():
-  """Run the game in Terminal"""
+def runTerminal(options):
+  """Run the game in Terminal
+
+    If options is None, a Menu will be opened to the Player.
+    Otherwise the game will jump to the Map form, and set the Player name,
+    and Map Dificulty using the options values.
+
+    options = tuple(name, dificulty)
+  """
 
   app = App()
+  if options:
+    name, dificulty = options
+    app.setGameOptions(name, dificulty)
   app.run()
 
+
+@click.command()
+@click.option('--name', default="NoName", help='Player name (used in rankings)')
+@click.option('--dificulty', help='Map Dificulty (Easy, Normal, Hard, Custom)')
+def main(name, dificulty):
+  if dificulty:
+    runTerminal((name, dificulty))
+  else:
+    runTerminal(None)
+
 if __name__ == "__main__":
-  runTerminal()
+  main()

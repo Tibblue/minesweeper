@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Minesweeper Game package
 
-Can run the game in the Browser using Flask.
-Use --help to show the possible flags and their use
+  Can run the game in the Browser using Flask.
+  Use --help to show the possible flags and their use
 
-TODO: Make TerminalUI (TUI)
-FIXME: Separate Web and Terminal stuff (after doing terminalGUI XD)
+  TODO: Make TerminalUI (TUI)
+  FIXME: Separate Web and Terminal stuff (after doing terminalGUI XD)
 """
 
 from generator import Minefield
@@ -232,8 +232,8 @@ def drawFieldOpen():
 def runWebFlask(debug):
   """Starts the game in the browser
 
-  Automatically opens a new tab, on your default browser, with the game.
-  Allows debug mode, in case you need it.
+    Automatically opens a new tab, on your default browser, with the game.
+    Allows debug mode, in case you need it.
   """
 
   ## Define address and port

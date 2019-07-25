@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
 """Minefield Generator package
 
-Not yet complete, but workable.
+  Not yet complete, but workable.
 
--Generates Minefield
--Verifies/Returns some properties
+  -Generates Minefield
+  -Verifies/Returns some properties
 
-TODO: Improve Minefield Class
+  TODO: Improve Minefield Class
+  TODO: add ranking, and in-game timer
 """
 
 from random import randint
@@ -15,7 +17,7 @@ from random import randint
 def isBorder(width,height,x,y):
   """True if square is at the Border
 
-  Border is a square at the Side OR Corner
+    Border is a square at the Side OR Corner
   """
 
   if isCorner(width,height,x,y):
@@ -42,7 +44,7 @@ def isCorner(width,height,x,y):
 def isSide(width,height,x,y):
   """True if square is at the Side of the matrix
 
-  Side DOES NOT include corners.
+    Side DOES NOT include corners.
   """
 
   if isCorner(width,height,x,y):
@@ -62,30 +64,30 @@ def isSide(width,height,x,y):
 class Minefield:
   """Minefield Matrix
 
-  This matrix represents the minesweeper Minefield.
+    This matrix represents the minesweeper Minefield.
 
-  Attributes
-  ----------
-  width : int
-    width of the matrix
-  height : int
-    height of the matrix
-  nMines : int
-    Number of Mines in the Minefield
-  posMines : Set List
-    List with the positions of the mines
-  matrixTuples : Matrix
-    Matrix where each position is a Tuple (Status,Number)
-  firstClick : Boolean
-    Is True if player didnt click yet (next click is the first)
+    Attributes
+    ----------
+    width : int
+      width of the matrix
+    height : int
+      height of the matrix
+    nMines : int
+      Number of Mines in the Minefield
+    posMines : Set List
+      List with the positions of the mines
+    matrixTuples : Matrix
+      Matrix where each position is a Tuple (Status,Number)
+    firstClick : Boolean
+      Is True if player didnt click yet (next click is the first)
 
-  NOTES:
-    -> Coord(x,y) = Position(x+y*width)
-    Each cell/square is a Tuple (Status,Number).
-      -> status - (flaged -1/hidden 0/visible 1)
-      -> number - square number (or -1 for mines)
+    NOTES:
+      -> Coord(x,y) = Position(x+y*width)
+      Each cell/square is a Tuple (Status,Number).
+        -> status - (flaged -1/hidden 0/visible 1)
+        -> number - square number (or -1 for mines)
 
-  TODO: move remaining function to the class
+    TODO: move remaining function to the class
   """
 
   def __init__(self,width,height,nMines):
@@ -94,8 +96,8 @@ class Minefield:
   def newMinefield(self,width,height,nMines):
     """Generate new Minefield (with given params)
 
-    Uses the given Width, Height and Number of Mines
-    to generate a new Minefield
+      Uses the given Width, Height and Number of Mines
+      to generate a new Minefield
     """
 
     self.width = width
@@ -109,12 +111,12 @@ class Minefield:
   def click(self,x,y,expand):
     """(Left) Click - Reveal square
 
-    returns -2 if a mine was clicked on the first click =
-                  should generate a new map
-            -1 if a mine was clicked = lost
-            0 if a empty square was clicked = expands if expand=True
-            1 if a number square was clicked = reveal square
-            2 if a flag was clicked = do nothing
+      returns -2 if a mine was clicked on the first click =
+                    should generate a new map
+              -1 if a mine was clicked = lost
+              0 if a empty square was clicked = expands if expand=True
+              1 if a number square was clicked = reveal square
+              2 if a flag was clicked = do nothing
     """
 
     square = self.matrixTuples[y][x]
@@ -152,7 +154,7 @@ class Minefield:
   def flag(self,x,y):
     """(Right) Click - Flag square
 
-    Also unflags, flaged squares.
+      Also unflags, flaged squares.
     """
 
     square = self.matrixTuples[y][x]
@@ -164,9 +166,9 @@ class Minefield:
   def checkVictory(self):
     """Verifies victory condictions
 
-    Victory condictions:
-      -> ALL mines must be flaged
-      -> ONLY the mines must be flaged
+      Victory condictions:
+        -> ALL mines must be flaged
+        -> ONLY the mines must be flaged
     """
 
     nMinesPlaced = nMinesCorrect = 0
@@ -185,8 +187,8 @@ class Minefield:
   def isSquare(self,x,y):
     """Check if square is inside the Minefield
 
-    A square with Coord(7,3) in a Minefield of width 5 is not considered
-    a square because its outside the boundaries.
+      A square with Coord(7,3) in a Minefield of width 5 is not considered
+      a square because its outside the boundaries.
     """
 
     if (x>=0 and x<self.width) and (y>=0 and y<self.height):
@@ -207,10 +209,10 @@ class Minefield:
   def _generateMatrix(self,width,height,posMines):
     """Generates Minefield with square status and numbers
 
-    Each square in the matrix is a tuple
-    Tuple = (Status, Number)
-      -> status - (flaged -1/hidden 0/visible 1)
-      -> number - square number (or -1 for mines)
+      Each square in the matrix is a tuple
+      Tuple = (Status, Number)
+        -> status - (flaged -1/hidden 0/visible 1)
+        -> number - square number (or -1 for mines)
     """
 
     matrix = [j for j in range(height)]
@@ -227,7 +229,7 @@ class Minefield:
   def _calculateNumber(self,width,height,x,y,posMines):
     """Calculate Numbers a square
 
-    Numbers are the number of adjacent mines to the square
+      Numbers are the number of adjacent mines to the square
     """
 
     # 8 vars, one for each adjacent square
