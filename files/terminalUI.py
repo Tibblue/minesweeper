@@ -445,6 +445,15 @@ def export_rankings(file):
   except:
     print("Rankings export failed...")
 
+def merge_rankings(file):
+  """Merge rankings with file
+
+    Rankings are saved in the file "ranking.json"
+    Receives a ranking file, merges all rankings and saves to "ranking.json"
+  """
+
+  pass
+
 
 def get_rankings():
   """Get Rankings for all dificulties"""
@@ -486,11 +495,12 @@ def submit_time(dificulty, player, time):
 @click.command()
 @click.option('-n', '--name', default="NoName", help='Player name (used in rankings)')
 @click.option('-d', '--dificulty', help='Map Dificulty (Easy, Normal, Hard, Custom)')
-@click.option('--rankings', default=5, help='Show Rankings')
+@click.option('--rankings', help='Show Rankings')
 @click.option('--import', 'import_file', help='Import Rankings from file')
 @click.option('--export', 'export_file', help='Export Rankings to file')
 @click.option('--merge', 'merge_file', help='Merge Rankings from file with current Rankings')
 def main(name, dificulty, rankings, import_file, export_file, merge_file):
+  # print("ARGS=>", name, dificulty, rankings, import_file, export_file, merge_file) # debug
   if import_file:
     import_rankings(import_file)
   elif export_file:
@@ -504,6 +514,7 @@ def main(name, dificulty, rankings, import_file, export_file, merge_file):
     runTerminal((name, dificulty))
   else:
     runTerminal(None)
+
 
 if __name__ == "__main__":
   main()
