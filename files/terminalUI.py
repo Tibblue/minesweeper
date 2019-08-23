@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Minesweeper Game package (Terminal)
+"""Minesweeper Game - Terminal Interface
 
   Runs the game in the Terminal using npyscreen.
+  Use --help to show the possible flags and their use.
 
-  TODO: maybe add flags to change the TUI before initializing
-  TODO: use flags to start game immediately at X dificulty
   TODO: ranking - add datetime
+  FIXME: inprove flags to change the TUI before initializing
+  FIXME: improve flags to start game immediately at X dificulty
 """
 
 from generator import Minefield
