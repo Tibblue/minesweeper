@@ -11,6 +11,7 @@
 """
 
 from random import randint
+import json
 
 
 class Minesweeper:
@@ -58,7 +59,7 @@ class Minesweeper:
     self.matrixTuples = self._generateMatrix()
     self.firstClick = True
 
-
+  #####
   def click(self,x,y,expand):
     """(Left) Click - Reveal square
 
@@ -146,7 +147,7 @@ class Minesweeper:
       return True
     return False
 
-
+  #####
   def _generateMines(self):
     """Generates random positions for mines"""
 
@@ -198,6 +199,65 @@ class Minesweeper:
         if i+j*self.width in self.posMines:
           nMinesAdjacent += 1
     return nMinesAdjacent
+
+  # RANKING functions
+  def import_rankings(file):
+    """Import rankings from file
+
+      Rankings are saved in the file "ranking.json"
+      Receives a ranking file, which becomes the new "ranking.json".
+    """
+
+    try:    ranking_file = open("ranking.json", "r")
+    except: print("ranking.json file is missing or was deleted.")
+    try:
+      import_file = open(file, "r")
+      ranking_file.write(import_file.read())
+      print("Rankings imported successfully!")
+    except:
+      print("Rankings import failed...")
+
+  def export_rankings(file):
+    """Export rankings to file
+
+      Rankings are saved in the file "ranking.json"
+      Exports rankings to the received file name.
+    """
+
+    try:    ranking_file = open("ranking.json", "r")
+    except: print("ranking.json file is missing or was deleted.")
+    try:
+      export_file = open(file, "w")
+      export_file.write(ranking_file.read())
+      print("Rankings exported successfully!")
+    except:
+      print("Rankings export failed...")
+
+  #TODO
+  def merge_rankings(file):
+    """Merge rankings with file
+
+      Rankings are saved in the file "ranking.json"
+      Receives a ranking file, merges all rankings and saves to "ranking.json"
+    """
+
+    pass
+
+  def get_rankings():
+    """Get Rankings for all dificulties"""
+
+    rankings_file = open('ranking.json')
+    rankings = json.load(rankings_file)
+    rankings_list = []
+    for dificulty in rankings:
+      dificulty_ranks_list = []
+      for player in rankings[dificulty]:
+        for time in rankings[dificulty][player]:
+          dificulty_ranks_list.append((player,time))
+      dificulty_ranks_list.sort(key = lambda pair: pair[1])
+      # print(dificulty, dificulty_ranks_list) # debug
+      rankings_list.append((dificulty,dificulty_ranks_list))
+    return rankings_list
 
 
 

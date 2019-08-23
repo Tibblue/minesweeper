@@ -5,7 +5,7 @@
   Use --help to show the possible flags and their use.
 
   TODO: ranking - add datetime
-  FIXME: inprove flags to change the TUI before initializing
+  FIXME: improve flags to change the TUI before initializing
   FIXME: improve flags to start game immediately at X dificulty
 """
 
@@ -414,63 +414,6 @@ def runTerminal(options):
   app.run()
 
 
-def import_rankings(file):
-  """Import rankings from file
-
-    Rankings are saved in the file "ranking.json"
-    Receives a ranking file, which becomes the new "ranking.json".
-  """
-
-  try:    ranking_file = open("ranking.json", "r")
-  except: print("ranking.json file is missing or was deleted.")
-  try:
-    import_file = open(file, "r")
-    ranking_file.write(import_file.read())
-    print("Rankings imported successfully!")
-  except:
-    print("Rankings import failed...")
-
-def export_rankings(file):
-  """Export rankings to file
-
-    Rankings are saved in the file "ranking.json"
-    Exports rankings to the received file name.
-  """
-
-  try:    ranking_file = open("ranking.json", "r")
-  except: print("ranking.json file is missing or was deleted.")
-  try:
-    export_file = open(file, "w")
-    export_file.write(ranking_file.read())
-    print("Rankings exported successfully!")
-  except:
-    print("Rankings export failed...")
-
-def merge_rankings(file):
-  """Merge rankings with file
-
-    Rankings are saved in the file "ranking.json"
-    Receives a ranking file, merges all rankings and saves to "ranking.json"
-  """
-
-  pass
-
-
-def get_rankings():
-  """Get Rankings for all dificulties"""
-
-  rankings_file = open('ranking.json')
-  rankings = json.load(rankings_file)
-  rankings_list = []
-  for dificulty in rankings:
-    dificulty_ranks_list = []
-    for player in rankings[dificulty]:
-      for time in rankings[dificulty][player]:
-        dificulty_ranks_list.append((player,time))
-    dificulty_ranks_list.sort(key = lambda pair: pair[1])
-    # print(dificulty, dificulty_ranks_list) # debug
-    rankings_list.append((dificulty,dificulty_ranks_list))
-  return rankings_list
 
 def show_rankings(rankings, top):
   """Rankings Pretty print"""
@@ -481,6 +424,7 @@ def show_rankings(rankings, top):
     for player,time in rankings[:top]:
       print(">",player,time)
 
+#TODO move to minesweeper class
 def submit_time(dificulty, player, time):
   rankings_file = open('ranking.json')
   rankings = json.load(rankings_file)
@@ -504,14 +448,14 @@ def submit_time(dificulty, player, time):
 def main(name, dificulty, rankings, import_file, export_file, merge_file):
   # print("ARGS=>", name, dificulty, rankings, import_file, export_file, merge_file) # debug
   if import_file:
-    import_rankings(import_file)
+    Minesweeper.import_rankings(import_file)
   elif export_file:
-    export_rankings(export_file)
+    Minesweeper.export_rankings(export_file)
   elif merge_file:
-    merge_rankings(merge_file)
+    Minesweeper.merge_rankings(merge_file)
   elif rankings:
-    ranks = get_rankings()
-    show_rankings(ranks, rankings)
+    ranks = Minesweeper.get_rankings()
+    show_rankings(ranks, int(rankings))
   elif dificulty:
     runTerminal((name, dificulty))
   else:
