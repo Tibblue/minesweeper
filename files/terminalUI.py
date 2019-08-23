@@ -9,7 +9,7 @@
   FIXME: improve flags to start game immediately at X dificulty
 """
 
-from generator import Minefield
+from minesweeper import Minesweeper
 import npyscreen as nps
 import regex as re
 import json
@@ -326,7 +326,7 @@ class MapForm(nps.FormBaseNew):
     self.width.value = width
     self.height.value = height
     self.mines.value = mines
-    self.minefieldClass = Minefield(width,height,mines)
+    self.minefieldClass = Minesweeper(width,height,mines)
     self.minefieldGrid.values = self.minefieldClass.matrixTuples
 
 
@@ -484,6 +484,7 @@ def show_rankings(rankings, top):
 def submit_time(dificulty, player, time):
   rankings_file = open('ranking.json')
   rankings = json.load(rankings_file)
+  time = int(time)
   try:
     rankings[dificulty][player].append(time)
   except:

@@ -1,70 +1,20 @@
 #!/usr/bin/env python3
-"""Minefield Generator package
+"""Minesweeper Generator package
 
-  Not yet complete, but workable.
+  Almost complete, but room for aditions and improvements.
 
   -Generates Minefield
   -Verifies/Returns some properties
 
-  TODO: Improve Minefield Class
+  TODO: Improve Minesweeper Class
   TODO: add ranking, and in-game timer
 """
 
 from random import randint
 
 
-### BORDERs check
-def isBorder(width,height,x,y):
-  """True if square is at the Border
-
-    Border is a square at the Side OR Corner
-  """
-
-  if isCorner(width,height,x,y):
-    return isCorner(width,height,x,y)
-  elif isSide(width,height,x,y):
-    return isSide(width,height,x,y)
-  else:
-    return False
-
-def isCorner(width,height,x,y):
-  """True if square is at a Corner"""
-
-  pos = x+y*width
-  if (pos==0):
-    return 'UL'
-  elif (pos==width-1):
-    return 'UR'
-  elif (pos==width*(height-1)):
-    return 'DL'
-  elif (pos==height*width-1):
-    return 'DR'
-  return False
-
-def isSide(width,height,x,y):
-  """True if square is at the Side of the matrix
-
-    Side DOES NOT include corners.
-  """
-
-  if isCorner(width,height,x,y):
-    return False
-  elif (x==0):
-    return 'L'
-  elif (x==width-1):
-    return 'R'
-  elif (y==0):
-    return 'U'
-  elif (y==height-1):
-    return 'D'
-  return False
-
-
-
-class Minefield:
-  """Minefield Matrix
-
-    This matrix represents the minesweeper Minefield.
+class Minesweeper:
+  """Minesweeper generator Class
 
     Attributes
     ----------
@@ -77,6 +27,7 @@ class Minefield:
     posMines : Set List
       List with the positions of the mines
     matrixTuples : Matrix
+      This matrix represents the Minesweeper Minefield.
       Matrix where each position is a Tuple (Status,Number)
     firstClick : Boolean
       Is True if player didnt click yet (next click is the first)
@@ -87,7 +38,7 @@ class Minefield:
         -> status - (flaged -1/hidden 0/visible 1)
         -> number - square number (or -1 for mines)
 
-    TODO: move remaining function to the class
+    TODO: move remaining functions to the class
   """
 
   def __init__(self,width,height,nMines):
@@ -103,8 +54,8 @@ class Minefield:
     self.width = width
     self.height = height
     self.nMines = nMines
-    self.posMines = self._generateMines(width,height,nMines)
-    self.matrixTuples = self._generateMatrix(width,height,self.posMines)
+    self.posMines = self._generateMines()
+    self.matrixTuples = self._generateMatrix()
     self.firstClick = True
 
 
@@ -196,17 +147,15 @@ class Minefield:
     return False
 
 
-  # FIXME: use self vars
-  def _generateMines(self,width,height,nMines):
+  def _generateMines(self):
     """Generates random positions for mines"""
 
     posMines = set()
-    while len(posMines)<nMines:
-      posMines.add(randint(0,width*height-1))
+    while len(posMines)<self.nMines:
+      posMines.add(randint(0,self.width*self.height-1))
     return posMines
 
-  # FIXME: use self vars
-  def _generateMatrix(self,width,height,posMines):
+  def _generateMatrix(self):
     """Generates Minefield with square status and numbers
 
       Each square in the matrix is a tuple
@@ -215,19 +164,18 @@ class Minefield:
         -> number - square number (or -1 for mines)
     """
 
-    matrix = [j for j in range(height)]
+    matrix = [j for j in range(self.height)]
     for j in matrix:
-      matrix[j] = [i for i in range(width)]
+      matrix[j] = [i for i in range(self.width)]
       for i in matrix[j]:
-        if i+j*width in posMines:
+        if i+j*self.width in self.posMines:
           matrix[j][i] = (0,-1)
         else:
-          matrix[j][i] = (0,self._calculateNumber(width,height,i,j,posMines))
+          matrix[j][i] = (0,self._calculateNumber(i,j))
     return matrix
 
-  # FIXME: use self vars
-  def _calculateNumber(self,width,height,x,y,posMines):
-    """Calculate Numbers a square
+  def _calculateNumber(self,x,y):
+    """Calculate Numbers for a square
 
       Numbers are the number of adjacent mines to the square
     """
@@ -246,8 +194,8 @@ class Minefield:
     nMinesAdjacent = 0
     for (i,j) in adjacentSquares:
       # FIXME: use isSquare in this if
-      if (i>=0 and i<width) and (j>=0 and j<height):
-        if i+j*width in posMines:
+      if (i>=0 and i<self.width) and (j>=0 and j<self.height):
+        if i+j*self.width in self.posMines:
           nMinesAdjacent += 1
     return nMinesAdjacent
 

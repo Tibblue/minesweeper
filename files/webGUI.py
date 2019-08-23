@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Minesweeper Game - Browser Interface
 
-  Can run the game in the Browser using Flask.
+  Runs the game in the Browser using Flask.
   Use --help to show the possible flags and their use.
 
   Note: should open a new browser tab for the game just fine in linux,
@@ -10,7 +10,7 @@
 
 """
 
-from generator import Minefield
+from minesweeper import Minesweeper
 from argparse import ArgumentParser
 from webbrowser import open
 from flask import *
@@ -64,8 +64,8 @@ def setRoutes(app):
     # session['lastURL'] = url_for('play')
     global minefield
     if minefield is None:
-      # session['minefield'] = Minefield(20,10,30)
-      minefield = Minefield(20,10,30)
+      # session['minefield'] = Minesweeper(20,10,30)
+      minefield = Minesweeper(20,10,30)
     minefieldHTML = drawField()
     if request.args.get('assist') is not None:
       minefieldHTML += '<br>'+drawFieldOpen()
@@ -82,7 +82,7 @@ def setRoutes(app):
   @app.route('/victory')
   def victory():
     global minefield
-    minefield = Minefield(20,10,30)
+    minefield = Minesweeper(20,10,30)
     html = f'<h1>You Won!!!</h1>'
     html += buttons
     return html
@@ -90,7 +90,7 @@ def setRoutes(app):
   @app.route('/lost')
   def lost():
     global minefield
-    minefield = Minefield(20,10,30)
+    minefield = Minesweeper(20,10,30)
     html = f'<h1>You Lost</h1>'
     html += buttons
     return html
@@ -103,7 +103,7 @@ def setRoutes(app):
     result = minefield.click(x,y,expand=True)
     if result==-2: # mine on first click
       while result==-2: # generate new map until its safe
-        minefield = Minefield(minefield.width,minefield.height,minefield.nMines)
+        minefield = Minesweeper(minefield.width,minefield.height,minefield.nMines)
         result = minefield.click(x,y,expand=True)
       return redirect(url_for('play'))
     elif result==-1:
@@ -128,19 +128,19 @@ def setRoutes(app):
   @app.route('/newMapEasy')
   def newMapEasy():
     global minefield
-    minefield = Minefield(10,8,10)
+    minefield = Minesweeper(10,8,10)
     return redirect(url_for('play'))
 
   @app.route('/newMapNormal')
   def newMapNormal():
     global minefield
-    minefield = Minefield(20,10,30)
+    minefield = Minesweeper(20,10,30)
     return redirect(url_for('play'))
 
   @app.route('/newMapHard')
   def newMapHard():
     global minefield
-    minefield = Minefield(30,20,125)
+    minefield = Minesweeper(30,20,125)
     return redirect(url_for('play'))
 
   @app.route('/custom')
@@ -153,7 +153,7 @@ def setRoutes(app):
     if nMines > width*height/2:
       flash('Too many Mines (cannot have more than half the field with mines)')
       return redirect(url_for('play'))
-    minefield = Minefield(width,height,nMines)
+    minefield = Minesweeper(width,height,nMines)
     return redirect(url_for('play'))
 
 
