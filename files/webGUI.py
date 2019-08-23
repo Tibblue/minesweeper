@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Minesweeper Game package
+"""Minesweeper Game - Browser Interface
 
   Can run the game in the Browser using Flask.
-  Use --help to show the possible flags and their use
+  Use --help to show the possible flags and their use.
 
-  TODO: Make TerminalUI (TUI)
-  FIXME: Separate Web and Terminal stuff (after doing terminalGUI XD)
+  Note: should open a new browser tab for the game just fine in linux,
+        but might not work on windows.
+        Look at the README.md file for information.
+
 """
 
 from generator import Minefield

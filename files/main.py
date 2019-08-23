@@ -2,7 +2,12 @@
 """Minesweeper Game package
 
   Can run the game in the Browser using Flask.
-  Use --help to show the possible flags and their use
+  Can run the game in the Terminal using npyscreen.
+  Use --help to show the possible flags and their use.
+
+  Note: This is JUST a main calling all the other files. If you want
+        one specific version, you are free to start Minesweeper directly
+        from the specific file.
 
   TODO: Finish TerminalUI (TUI)
   TODO: Improve WebFlask (WebGUI)
@@ -24,11 +29,11 @@ def main():
 
   if args['web']:
     if args['debug']:
-      runWebFlask(True)
+      runWebFlask(debug=True)
     else:
-      runWebFlask(False)
+      runWebFlask(debug=False)
   elif args['terminal']:
-    runTerminal()
+    runTerminal(options=None)
   else:
     parser.print_help()
 

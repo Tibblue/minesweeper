@@ -1,18 +1,18 @@
 web:
-	./minesweeper.py --web
+	# ./minesweeper.py --web
+	./webGUI.py
 
 webDebug:
 	# firefox http://localhost:5000
-	./minesweeper.py --web --debug
+	# ./minesweeper.py --web --debug
+	./webGUI.py --debug
 
 terminal:
-	./minesweeper.py --terminal
+	# ./minesweeper.py --terminal
+	./terminalUI.py
 
 help:
 	./minesweeper.py --help
-
-runSafeDebug:
-	FLASK_APP=minesweeper.py FLASK_ENV=development flask run
 
 install:
 	pip install flask --user
