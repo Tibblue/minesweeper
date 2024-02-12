@@ -15,6 +15,7 @@ help:
 	./minesweeper.py --help
 
 install:
-	pip install flask --user
+	pip install regex --user
 	pip install npyscreen --user
+	pip install flask --user
 	pip install curses --user
